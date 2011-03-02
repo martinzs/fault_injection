@@ -1,0 +1,21 @@
+
+global sys_count
+
+probe syscall.*
+{
+    if (pid() == target())
+    {
+        sys_count[name]++
+    }
+}
+
+probe syscall.*.return
+{
+        if (name == @2)
+        {
+            if (sys_count[name] == $1)
+            {
+                $return = -30
+            }
+        }
+}
