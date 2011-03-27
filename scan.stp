@@ -1,5 +1,4 @@
 
-global sys_count
 global arguments=""
 
 probe syscall.*
@@ -7,7 +6,6 @@ probe syscall.*
     if (pid() == target())
     {
         arguments = argstr
-        sys_count[name]++
     }
 }
 
@@ -15,7 +13,11 @@ probe syscall.*.return
 {
         if (pid() == target())
         {
-            printf("%d\t%s\t%d\t%d\t%s\n\n", sys_count[name], name, $return, pid(), arguments)
+            if ($return >= 0)
+                errno = 0
+            else
+                errno = $return
+            printf("%s (%s) = %d %s\n", name, arguments, $return, errno_str(errno))
             arguments=""
         }
 }
