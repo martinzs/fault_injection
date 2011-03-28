@@ -79,7 +79,7 @@ probe begin
 }
 
 
-probe syscall.mkdirat
+probe syscall.*
 {
     if (pid() == target())
     {
@@ -149,7 +149,7 @@ function cmpArgs(arg1:string, arg2:string)
 }
 
 
-probe syscall.mkdirat.return
+probe syscall.*.return
 {
     if (pid() == target())
     {
