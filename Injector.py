@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 
 import os
+from threading import Thread
 
-class Injector():
-    def __init__(self):
-        pass
+class Injector(Thread):
+    def __init__(self, syscalls, command):
+        Thread.__init__(self)
+        self.syscalls = syscalls
+        self.command = command
+    
+    def run(self):
+        self.inject()
         
-    def inject(self, syscalls, command):
-        os.system("stap inject.stp \"" + syscalls + "\" -g -c \"" + command + "\"")
+    def inject(self):
+        os.system("stap inject3.stp  -g -c \"" + self.command + "\"")
+        #os.system("stap ../procfs/procfs.stp")
 
 def main():
     injector = Injector()

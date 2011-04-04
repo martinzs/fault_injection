@@ -183,6 +183,9 @@ class InputScanner():
                 #else:
                 injectValues.append(params)
                 params = []
+        injectValues.sort()
+        return injectValues
+        """
         injectValuesStr = ""
         for i in injectValues:
             for p in i:
@@ -193,6 +196,7 @@ class InputScanner():
                 injectValuesStr += param + ","
             injectValuesStr += ";"
         return injectValuesStr
+        """
 
 
 def main():

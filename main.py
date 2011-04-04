@@ -6,13 +6,16 @@ import getopt
 from SyscallExtractor import *
 from InputScanner import *
 from Injector import *
+from GenerateStap import *
+from InputController import *
 
 def main():
     # kontrola argumentu programu
     inputFilename = ""
     command = ""
+    disableSyscalls = 0
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "i:c:", ["input=", "command="])
+        opts, args = getopt.getopt(sys.argv[1:], "i:c:d", ["input=", "command="])
     except getopt.GetoptError, e:
         print e
         return
@@ -21,6 +24,8 @@ def main():
             inputFilename = a
         elif o in ("-c", "--command"):
             command = a
+        elif o in ("-d",):
+            disableSyscalls = 1
 
     if inputFilename == "":
         print "no input file"
@@ -48,10 +53,25 @@ def main():
     scanner = InputScanner(syscallsAndErrors)
     injectValues = scanner.scan(inputData)
     #print injectValues
+    
+
+    # vygeneruje soubor pro systemtap
+    generator = GenerateStap()
+    generator.generate("inject3.stp", injectValues, disableSyscalls)
 
     # vlozi odpovidajici chyby podle zadaneho vstupu
-    injector = Injector()
-    injector.inject(injectValues, command)
+    injector = Injector(injectValues, command)
+    injector.start()
+
+    # vytvoreni vlakna, ktere bude nacitat data ze vstupu
+    if disableSyscalls == 1:
+        inputCtrl = InputController(injectValues)
+        inputCtrl.start()
+
+    
+    
+    
+    
 
 if __name__ == "__main__":
     main()
