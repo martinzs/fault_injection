@@ -10,9 +10,13 @@ L_BRACKET = 2
 R_BRACKET = 3
 COMMA = 4
 MINUS = 5
-PARAM = 6
-EQUAL = 7
-ECODE = 8
+OR = 6
+PARAM = 7
+EQUAL = 8
+ECODE = 9
+ALL = 10
+COLON = 11
+DIGIT = 12
 
 
 # Trida pro scanovani vstupniho souboru
@@ -28,13 +32,17 @@ class InputScanner():
             self.errors.append(key)
         self.scanner = re.Scanner([
             (r"E[A-Z]+", self.ecode),
+            (r"ALL", self.all_code),
+            (r"\s+", None),
+            #(r"\d+", self.digit),
             (r"\w+", self.ident),
             (r"\(", self.l_bracket),
             (r"\)", self.r_bracket),
             (r",", self.comma),
             (r"-", self.minus),
+            (r"\|", self.or_op),
+            #(r":", self.colon),
             (r"=", self.equal),          
-            (r"\s+", None),
             (r"[^,)(]+", self.param), 
           #  (r"\S+", self.other),
             ])
@@ -61,6 +69,13 @@ class InputScanner():
     #znak minus (pomlcka)
     def minus(self, scanner, token):
         return (token, MINUS)
+        
+    #znak | (logicke OR)
+    def or_op(self, scanner, token):
+        return (token, OR)
+        
+    def colon(self, scanner, token):
+        return (token, COLON)
 
     #parametr systemoveho volani
     def param(self, scanner, token):
@@ -79,10 +94,18 @@ class InputScanner():
             return (token, ECODE)
         else:
             return (token, PARAM)
+            
+    # ALL u chyboveho kodu
+    def all_code(self, scanner, token):
+        return (token, ALL)
+        
+    # cislice
+    def digit(self, scanner, token):
+        return (token, DIGIT)
 
     # ostatni
     def other(self, scanner, token):
-        return (token, 7)
+        return (token, ERROR)
 
     # lexikalni analyza
     # overi spravnost tokenu
@@ -108,6 +131,8 @@ class InputScanner():
                     state = PARAM
                 elif token[1] == MINUS:
                     state = MINUS
+                elif token[1] == DIGIT:
+                    state = PARAM
                 elif token[1] == R_BRACKET:
                     state = R_BRACKET
                 else:
@@ -135,6 +160,8 @@ class InputScanner():
             elif state == COMMA:
                 if token[1] == PARAM:
                     state = PARAM
+                elif token[1] == DIGIT:
+                    state = PARAM
                 elif token[1] == MINUS:
                     state = MINUS
                 else:
@@ -150,6 +177,43 @@ class InputScanner():
                     
             elif state == EQUAL:
                 if token[1] == ECODE:
+                    state = ECODE
+                elif token[1] == ALL:
+                    state = ALL
+                else:
+                    state = ERROR
+                    return 0
+                    
+            elif state == ALL:
+                if token[1] == COLON:
+                    state = COLON
+                elif token[1] == SYSCALL:
+                    state = SYSCALL
+                else:
+                    state = ERROR
+                    return 0
+                
+                    
+            elif state == ECODE:
+                if token[1] == OR:
+                    state = OR
+                elif token[1] == SYSCALL:
+                    state = SYSCALL
+                elif token[1] == COLON:
+                    state = COLON
+                else:
+                    state = ERROR
+                    return 0
+            
+            elif state == OR:
+                if token[1] == ECODE:
+                    state = ECODE
+                else:
+                    state = ERROR
+                    return 0
+                    
+            elif state == COLON:
+                if token[1] == DIGIT:
                     state = START
                 else:
                     state = ERROR
@@ -160,29 +224,50 @@ class InputScanner():
     # rozdeli vstupni soubor na tokeny
     def scan(self, data):
         tokens = self.scanner.scan(data)
-        #print tokens
+        print tokens
         if not self.lex_anal(tokens):
             print "Syntax ERROR"
             #return
             
         injectValues = []
         params = []
+        ecode = []
+        #enable_d = 0
         for t in tokens[0]:
             if t[1] == SYSCALL:
+                if params != []:
+                    params[1] = ecode
+                    injectValues.append(params)
+                    params = []
+                    ecode = []
+                #enable_d = 0
                 params.append(t[0])
                 params.append(0)
+                #params.append(1)
             elif t[1] == PARAM:
                 params.append(t[0])
+            #elif t[1] == R_BRACKET:
+            #    enable_d = 1
+            #elif t[1] == DIGIT:
+            #    if enable_d == 1:
+            #        params[2] = t[0]
+            #    else:
+            #        params.append(t[0])
             elif t[1] == MINUS:
                 params.append("''")
+            elif t[1] == ALL:
+                for e in self.syscallsAndErrors[0][params[0]]:
+                    ecode.append(self.syscallsAndErrors[0][params[0]][e])
             elif t[1] == ECODE:
                 #try:
-                params[1] =  self.syscallsAndErrors[0][params[0]][t[0]]
+                ecode.append(self.syscallsAndErrors[0][params[0]][t[0]])
                 #except:
                 #    pass
                 #else:
-                injectValues.append(params)
-                params = []
+        
+        params[1] = ecode
+        injectValues.append(params)
+                
         injectValues.sort()
         return injectValues
         """
@@ -201,7 +286,7 @@ class InputScanner():
 
 def main():
     scanner = InputScanner()
-    scanner.scan("open(-,ahoj ,\"usr/share\") = ENOENT\nmkdirat (-, \"a\", 0777) = ENOTDIR")
+    print scanner.scan("open(-,ahoj ,\"usr/share\") = ENOENT\nmkdirat (-, \"a\", 0777) = ENOTDIR")
 
 if __name__ == "__main__":
     main()

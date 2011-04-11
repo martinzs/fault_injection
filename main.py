@@ -52,8 +52,8 @@ def main():
     # lexikalni analyza vstupniho soboru s pravidly
     scanner = InputScanner(syscallsAndErrors)
     injectValues = scanner.scan(inputData)
-    #print injectValues
-    
+    print injectValues
+    return
 
     # vygeneruje soubor pro systemtap
     generator = GenerateStap()

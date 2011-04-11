@@ -42,11 +42,15 @@ class GenerateStap():
     def printProbeReturn(self, stap, args, previousSyscall, disableSyscalls):
         i = 0
         returnCode = ""
+        name = ""
         bracketCount = 0
         
         for a in args:
             if i == 0:
+                name = a
                 if previousSyscall != a:
+                    #Druha moznost
+                    stap.write("global last_" + a + " = 0\n\n")
                     stap.write("\nprobe syscall." + a + ".return\n{")
                     if disableSyscalls == 1:
                         stap.write("""
@@ -63,7 +67,21 @@ class GenerateStap():
                     stap.write("if (syscall_args[" + str(i - 1) + "] == \"" + a + "\")\n{\n")
                     bracketCount += 1
             i += 1
-        stap.write("$return = -" + returnCode + "\n")
+        
+        j = 0     
+        for c in returnCode:
+            stap.write("ecode[" + str(j) + "] = -" + c + "\n")
+            j += 1
+            
+        # Prvni moznost
+        #stap.write("$return = ecode[randint(" + str(j) + ")]\n")
+        
+        #Druha moznost
+        stap.write("$return = ecode[last_" + name + "]\n")
+        stap.write("last_" + name + "++\n")
+        stap.write("if (last_" + name + " == " + str(j) + ")\n")
+        stap.write("    last_" + name + " = 0\n")
+        
         for j in range(bracketCount):
             stap.write("}\n")
         
@@ -122,6 +140,8 @@ function mytokenize:string(input:string, delim:string)
                 memcpy(THIS->__retvalue, token, token_end - token_start + 1);
         }
 %} 
+
+global ecode
 
 """)
 
