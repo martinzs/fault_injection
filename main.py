@@ -60,7 +60,7 @@ def main():
     generator.generate("inject3.stp", injectValues, disableSyscalls)
 
     # vlozi odpovidajici chyby podle zadaneho vstupu
-    injector = Injector(injectValues, command)
+    injector = Injector(command)
     injector.start()
 
     # vytvoreni vlakna, ktere bude nacitat data ze vstupu

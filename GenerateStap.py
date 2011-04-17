@@ -168,10 +168,231 @@ global ecode
             stap.write("}\n}\n")
         
 
-def main():
-    generator = GenerateStap()
-    generator.generate()
 
-if __name__ == "__main__":
-    main()
+#global ewouldblock_enable = """ + "1" if enableFault["file"] == "EWOULDBLOCK" else "0" + """
+#probe procfs("ewouldblock").write
+#{
+#    if ($value == "1\n")
+#        ewouldblock_enable = 1
+#    else
+#        ewouldblock_enable = 0
+#}
+
+    def generateNormalInjection(self, stapFilename, returnCode, enableFault):
+        stap = file(stapFilename, 'w')
+        stap.write("""
+
+global eacces_enable = """ + ("1" if enableFault["file"] == "EACCES" else "0") + """
+global enoent_enable = """ + ("1" if enableFault["file"] == "ENOENT" else "0") + """
+global emfile_enable = """ + ("1" if enableFault["file"] == "EMFILE" else "0") + """
+global eexist_enable = """ + ("1" if enableFault["file"] == "EEXIST" else "0") + """
+
+global enetunreach_enable = """ + ("1" if enableFault["net"] == "ENETUNREACH" else "0") + """
+global etimedout_enable = """ + ("1" if enableFault["net"] == "ETIMEDOUT" else "0") + """
+global econnrefused_enable = """ + ("1" if enableFault["net"] == "ECONNREFUSED" else "0") + """
+global econnreset_enable = """ + ("1" if enableFault["net"] == "ECONNRESET" else "0") + """
+global emsgsize_enable = """ + ("1" if enableFault["net"] == "EMSGSIZE" else "0") + """
+global eisconn_enable = """ + ("1" if enableFault["net"] == "EISCONN" else "0") + """
+global enotconn_enable = """ + ("1" if enableFault["net"] == "ENOTCONN" else "0") + """
+
+probe procfs("eacces").write
+{
+    if ($value == "1\\n")
+        eacces_enable = 1
+    else
+        eacces_enable = 0
+}
+
+probe procfs("enoent").write
+{
+    if ($value == "1\\n")
+        enoent_enable = 1
+    else
+        enoent_enable = 0
+}
+
+probe procfs("emfile").write
+{
+    if ($value == "1\\n")
+        emfile_enable = 1
+    else
+        emfile_enable = 0
+}
+
+
+
+probe procfs("eexist").write
+{
+    if ($value == "1\\n")
+        eexist_enable = 1
+    else
+        eexist_enable = 0
+}
+
+probe procfs("enetunreach").write
+{
+    if ($value == "1\\n")
+        enetunreach_enable = 1
+    else
+        enetunreach_enable = 0
+}
+
+probe procfs("etimedout").write
+{
+    if ($value == "1\\n")
+        etimedout_enable = 1
+    else
+        etimedout_enable = 0
+}
+
+probe procfs("econnrefused").write
+{
+    if ($value == "1\\n")
+        econnrefused_enable = 1
+    else
+        econnrefused_enable = 0
+}
+
+probe procfs("econnreset").write
+{
+    if ($value == "1\\n")
+        econnreset_enable = 1
+    else
+        econnreset_enable = 0
+}
+
+probe procfs("emsgsize").write
+{
+    if ($value == "1\\n")
+        emsgsize_enable = 1
+    else
+        emsgsize_enable = 0
+}
+
+probe procfs("eisconn").write
+{
+    if ($value == "1\\n")
+        eisconn_enable = 1
+    else
+        eisconn_enable = 0
+}
+
+probe procfs("enotconn").write
+{
+    if ($value == "1\\n")
+        enotconn_enable = 1
+    else
+        enotconn_enable = 0
+}
+
+
+
+probe syscall.open.return
+{
+    if (pid() == target())
+    {
+        if (eacces_enable == 1)
+            $return = -""" + returnCode["EACCES"] + """
+        else if (enoent_enable == 1)
+            $return = -""" + returnCode["ENOENT"] + """
+        else if (emfile_enable == 1)
+            $return = -""" + returnCode["EMFILE"] + """
+        else if (eexist_enable == 1)
+            $return =  -""" + returnCode["EEXIST"] + """
+    }
+}
+
+probe syscall.connect.return
+{
+    if (pid() == target())
+    {
+        if (enetunreach_enable == 1)
+            $return = -""" + returnCode["ENETUNREACH"] + """
+        else if (etimedout_enable == 1)
+            $return = -""" + returnCode["ETIMEDOUT"] + """
+        else if (econnrefused_enable == 1)
+            $return =  -""" + returnCode["ECONNREFUSED"] + """
+        else if (eisconn_enable == 1)
+            $return = -""" + returnCode["EISCONN"] + """
+    }
+}
+
+probe syscall.send.return
+{
+    if (pid() == target())
+    {
+        if (eisconn_enable == 1)
+            $return =  -""" + returnCode["EISCONN"] + """
+        else if (enotconn_enable == 1)
+            $return =  -""" + returnCode["ENOTCONN"] + """
+        else if (econnreset_enable == 1)
+            $return =  -""" + returnCode["ECONNRESET"] + """
+        else if (emsgsize_enable == 1)
+            $return = -""" + returnCode["EMSGSIZE"] + """
+    }
+}
+
+probe syscall.sendto.return
+{
+    if (pid() == target())
+    {
+        if (eisconn_enable == 1)
+            $return =  -""" + returnCode["EISCONN"] + """
+        else if (enotconn_enable == 1)
+            $return =  -""" + returnCode["ENOTCONN"] + """
+        else if (econnreset_enable == 1)
+            $return =  -""" + returnCode["ECONNRESET"] + """
+        else if (emsgsize_enable == 1)
+            $return = -""" + returnCode["EMSGSIZE"] + """
+    }
+}
+
+probe syscall.sendmsg.return
+{
+    if (pid() == target())
+    {
+        if (eisconn_enable == 1)
+            $return =  -""" + returnCode["EISCONN"] + """
+        else if (enotconn_enable == 1)
+            $return =  -""" + returnCode["ENOTCONN"] + """
+        else if (econnreset_enable == 1)
+            $return =  -""" + returnCode["ECONNRESET"] + """
+        else if (emsgsize_enable == 1)
+            $return = -""" + returnCode["EMSGSIZE"] + """
+    }
+}
+
+probe syscall.recv.return
+{
+    if (pid() == target())
+    {
+        if (econnrefused_enable == 1)
+            $return = -""" + returnCode["ECONNREFUSED"] + """
+        else if (enotconn_enable == 1)
+            $return = -""" + returnCode["ENOTCONN"] + """
+    }
+}
+
+probe syscall.recvfrom.return
+{
+    if (pid() == target())
+    {
+        if (econnrefused_enable == 1)
+            $return = -""" + returnCode["ECONNREFUSED"] + """
+        else if (enotconn_enable == 1)
+            $return = -""" + returnCode["ENOTCONN"] + """
+    }
+}
+
+probe syscall.recvmsg.return
+{
+    if (pid() == target())
+    {
+        if (econnrefused_enable == 1)
+            $return = -""" + returnCode["ECONNREFUSED"] + """
+        else if (enotconn_enable == 1)
+            $return = -""" + returnCode["ENOTCONN"] + """
+    }
+}
+""")
     

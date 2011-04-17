@@ -1,25 +1,19 @@
 #!/usr/bin/env python
 
+
 import os
+import subprocess
+import time
 from threading import Thread
 
 class Injector(Thread):
-    def __init__(self, syscalls, command):
+    def __init__(self, command, stapFilename, app):
         Thread.__init__(self)
-        self.syscalls = syscalls
         self.command = command
+        self.stapFilename = stapFilename
+        self.app = app
     
     def run(self):
-        self.inject()
+        os.system("stap " + self.stapFilename + " -g -c \"" + self.command + "\"")
+        self.app.endTestApp()
         
-    def inject(self):
-        os.system("stap inject3.stp  -g -c \"" + self.command + "\"")
-        #os.system("stap ../procfs/procfs.stp")
-
-def main():
-    injector = Injector()
-    injector.inject("mkdir a")
-
-if __name__ == "__main__":
-    main()
-    
