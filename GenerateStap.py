@@ -195,6 +195,14 @@ global emsgsize_enable = """ + ("1" if enableFault["net"] == "EMSGSIZE" else "0"
 global eisconn_enable = """ + ("1" if enableFault["net"] == "EISCONN" else "0") + """
 global enotconn_enable = """ + ("1" if enableFault["net"] == "ENOTCONN" else "0") + """
 
+global eacces_process_enable = """ + ("1" if enableFault["process"] == "EACCES" else "0") + """
+global enoent_process_enable = """ + ("1" if enableFault["process"] == "ENOENT" else "0") + """
+global enoexec_enable = """ + ("1" if enableFault["process"] == "ENOEXEC" else "0") + """
+global enomem_process_enable = """ + ("1" if enableFault["process"] == "ENOMEM" else "0") + """
+global elibbad_enable = """ + ("1" if enableFault["process"] == "ELIBBAD" else "0") + """
+global etxtbsy_enable = """ + ("1" if enableFault["process"] == "ETXTBSY" else "0") + """
+
+
 probe procfs("eacces").write
 {
     if ($value == "1\\n")
@@ -285,6 +293,54 @@ probe procfs("enotconn").write
         enotconn_enable = 0
 }
 
+
+probe procfs("eacces_process").write
+{
+    if ($value == "1\\n")
+        eacces_process_enable = 1
+    else
+        eacces_process_enable = 0
+}
+
+probe procfs("enoent_process").write
+{
+    if ($value == "1\\n")
+        enoent_process_enable = 1
+    else
+        enoent_process_enable = 0
+}
+
+probe procfs("enoexec").write
+{
+    if ($value == "1\\n")
+        enoexec_enable = 1
+    else
+        enoexec_enable = 0
+}
+
+probe procfs("enomem_process").write
+{
+    if ($value == "1\\n")
+        enomem_process_enable = 1
+    else
+        enomem_process_enable = 0
+}
+
+probe procfs("elibbad").write
+{
+    if ($value == "1\\n")
+        elibbad_enable = 1
+    else
+        elibbad_enable = 0
+}
+
+probe procfs("etxtbsy").write
+{
+    if ($value == "1\\n")
+        etxtbsy_enable = 1
+    else
+        etxtbsy_enable = 0
+}
 
 
 probe syscall.open.return

@@ -233,7 +233,7 @@
                                 <property name="position">5</property>
                               </packing>
                             </child>
-                            <child>
+                           <!-- <child>
                               <object class="GtkRadioButton" id="blockRadiobutton">
                                 <property name="label" translatable="yes">Operation would block</property>
                                 <property name="visible">True</property>
@@ -248,7 +248,7 @@
                                 <property name="expand">False</property>
                                 <property name="position">6</property>
                               </packing>
-                            </child>
+                            </child>-->
                             <child>
                               <object class="GtkRadioButton" id="existRadiobutton">
                                 <property name="label" translatable="yes">File exists</property>
@@ -446,9 +446,9 @@
                           <object class="GtkVBox" id="vbox4">
                             <property name="visible">True</property>
                             <child>
-                              <object class="GtkLabel" id="memLabel">
+                              <object class="GtkLabel" id="processLabel">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">Práce s pamětí</property>
+                                <property name="label" translatable="yes">Práce s procesy</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -466,12 +466,14 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton3">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkRadioButton" id="noProcessFault">
+                                <property name="label" translatable="yes">No fault</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
+                                <signal name="toggled" handler="noprocessRadio"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -479,16 +481,99 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton4">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkRadioButton" id="radiobutton8">
+                                <property name="label" translatable="yes">Permission is denied</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
+                                <property name="group">noProcessFault</property>
+                                <signal name="toggled" handler="eaccesProcessRadio"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="position">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton9">
+                                <property name="label" translatable="yes">Process not found</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">noProcessFault</property>
+                                <signal name="toggled" handler="enoentProcesRadio"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">4</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton10">
+                                <property name="label" translatable="yes">Exec format error</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">noProcessFault</property>
+                                <signal name="toggled" handler="enoexecRadio"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">5</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton11">
+                                <property name="label" translatable="yes">Insufficient kernel memory</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">noProcessFault</property>
+                                <signal name="toggled" handler="enomemProcessRadio"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">6</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton12">
+                                <property name="label" translatable="yes">Accessing a corrupted library</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">noProcessFault</property>
+                                <signal name="toggled" handler="elibbadRadio"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">7</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="radiobutton13">
+                                <property name="label" translatable="yes">Executable was open for writing</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">noProcessFault</property>
+                                <signal name="toggled" handler="etxtbsyRadio"/>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">8</property>
                               </packing>
                             </child>
                           </object>
@@ -509,9 +594,9 @@
                           <object class="GtkVBox" id="vbox5">
                             <property name="visible">True</property>
                             <child>
-                              <object class="GtkLabel" id="processLabel">
+                              <object class="GtkLabel" id="memLabel">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">Práce s procesy</property>
+                                <property name="label" translatable="yes">Práce s pamětí</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -529,11 +614,12 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton5">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkRadioButton" id="nomemRadio">
+                                <property name="label" translatable="yes">No fault</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
                               </object>
                               <packing>
@@ -542,12 +628,14 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkCheckButton" id="checkbutton6">
-                                <property name="label" translatable="yes">checkbutton</property>
+                              <object class="GtkRadioButton" id="radiobutton15">
+                                <property name="label" translatable="yes">radiobutton</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
+                                <property name="group">nomemRadio</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -566,7 +654,8 @@
                 <child type="label">
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Základní chyby&lt;/b&gt;</property>
+                    <property name="yalign">0.49000000953674316</property>
+                    <property name="label" translatable="yes">&lt;b&gt;&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
                   </object>
                 </child>
@@ -575,7 +664,7 @@
             <child type="tab">
               <object class="GtkLabel" id="normal">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Základní</property>
+                <property name="label" translatable="yes">Základní vkládání chyb</property>
               </object>
               <packing>
                 <property name="tab_fill">False</property>
@@ -598,7 +687,7 @@
                 <child type="label">
                   <object class="GtkLabel" id="label2">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Pokročílé chyby&lt;/b&gt;</property>
+                    <property name="label" translatable="yes">&lt;b&gt;&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
                   </object>
                 </child>
@@ -610,7 +699,7 @@
             <child type="tab">
               <object class="GtkLabel" id="intermediate">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Pokročílé</property>
+                <property name="label" translatable="yes">Pokročílé vkládání chyb</property>
               </object>
               <packing>
                 <property name="position">1</property>
