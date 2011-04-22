@@ -18,6 +18,8 @@ from Injector import *
 from InjectController import *
 from GenerateStap import *
 
+from FaultDialog import *
+
 gtk.gdk.threads_init()
 
 class SenderStart(gobject.GObject):
@@ -37,11 +39,26 @@ class TutorialApp(object):
     
         self.builder = gtk.Builder()
         self.builder.add_from_file("fault_injection.glade")
-        self.builder.connect_signals({ "exitApp" : gtk.main_quit, "browseButtonClicked": self.browseClicked, "nofileRadio" : self.nofileRadioClicked, "eacessRadio" : self.eacessRadioClicked, "enoentRadio" : self.enoentRadioClicked, "emfileRadio" : self.emfileRadioClicked, "ewouldblockRadio" : self.ewouldblockRadioClicked, "eexistRadio" : self.eexistRadioClicked, "nonetRadio" : self.nonetRadioClicked, "enetunreachRadio" : self.enetunreachRadioClicked, "etimedoutRadio" : self.etimedoutRadioClicked, "econnrefusedRadio" : self.econnrefusedRadioClicked, "econnresetRadio" : self.econnresetRadioClicked, "emsgsizeRadio" : self.emsgsizeRadioClicked, "eisconnRadio" : self.eisconnRadioClicked, "enotconnRadio" : self.enotconnRadioClicked, "startButtonClicked" : self.startButtonClicked, "startButtonReleased" : self.startButtonReleased, "termButtonClicked" : self.termButtonClicked, "eaccesProcessRadio" : self.eaccesProcessRadioClicked, "enoentProcessRadio" : self.enoentProcessRadioClicked, "enoexecRadio" : self.enoexecRadioClicked, "enomemProcessRadio" : self.enomemProcessRadioClicked, "elibbadRadio" : self.elibbadRadioClicked, "etxtbsyRadio" : self.etxtbsyRadioClicked, "noprocessRadio" : self.noprocessRadioClicked})
+        self.builder.connect_signals({ "exitApp" : gtk.main_quit, "browseButtonClicked": self.browseClicked, "nofileRadio" : self.nofileRadioClicked, "eacessRadio" : self.eacessRadioClicked, "enoentRadio" : self.enoentRadioClicked, "emfileRadio" : self.emfileRadioClicked, "ewouldblockRadio" : self.ewouldblockRadioClicked, "eexistRadio" : self.eexistRadioClicked, "nonetRadio" : self.nonetRadioClicked, "enetunreachRadio" : self.enetunreachRadioClicked, "etimedoutRadio" : self.etimedoutRadioClicked, "econnrefusedRadio" : self.econnrefusedRadioClicked, "econnresetRadio" : self.econnresetRadioClicked, "emsgsizeRadio" : self.emsgsizeRadioClicked, "eisconnRadio" : self.eisconnRadioClicked, "enotconnRadio" : self.enotconnRadioClicked, "startButtonClicked" : self.startButtonClicked, "startButtonReleased" : self.startButtonReleased, "termButtonClicked" : self.termButtonClicked, "eaccesProcessRadio" : self.eaccesProcessRadioClicked, "enoentProcessRadio" : self.enoentProcessRadioClicked, "enoexecRadio" : self.enoexecRadioClicked, "enomemProcessRadio" : self.enomemProcessRadioClicked, "elibbadRadio" : self.elibbadRadioClicked, "etxtbsyRadio" : self.etxtbsyRadioClicked, "noprocessRadio" : self.noprocessRadioClicked, "addFaultButton" : self.addFaultButtonClicked})
         button = self.builder.get_object("termButton")
         button.set_sensitive(False)
         self.window = self.builder.get_object("mainWindow")
         self.window.show()
+        
+        # List of faults
+        self.faultView = self.builder.get_object("faultView")
+        self.faultList = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_BOOLEAN)
+        self.faultView.set_model(self.faultList)
+        column = gtk.TreeViewColumn("Syscall", gtk.CellRendererText(), text=0)
+        self.faultView.append_column(column)
+        column = gtk.TreeViewColumn("Error", gtk.CellRendererText(), text=1)
+        self.faultView.append_column(column)
+        cell = gtk.CellRendererToggle()
+        cell.set_radio(True)
+        #cell.connect("toggled", self.errorToggled, self.faultList)
+        column = gtk.TreeViewColumn("Enable", cell, active=2)
+        column.set_clickable(True)
+        self.faultView.append_column(column)
         
         # extrakce systemovych volani a jejich navratovych hodnot
         extractor = SyscallExtractor()
@@ -121,6 +138,12 @@ class TutorialApp(object):
         self.endTestApp()
         os.kill(0, signal.SIGINT)
         
+    def addFaultButtonClicked(self, widget):
+        faultDialog = FaultDialog(self.syscallsAndErrors)
+        returnValue = faultDialog.run()
+        print returnValue
+        
+        
         
         
     def procfsWriter(self, name, value):
@@ -130,27 +153,22 @@ class TutorialApp(object):
     def nofileRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "NOFILE"
+            self.procfsWriter("file", "nofault")
 
     def eacessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "EACCES"
-            self.procfsWriter("eacces", 1)
-        else:
-            self.procfsWriter("eacces", 0)
+            self.procfsWriter("file", "eacces")
 
     def enoentRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "ENOENT"
-            self.procfsWriter("enoent", 1)
-        else:
-            self.procfsWriter("enoent", 0)
+            self.procfsWriter("file", "enoent")
     
     def emfileRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "EMFILE"
-            self.procfsWriter("emfile", 1)
-        else:
-            self.procfsWriter("emfile", 0)
+            self.procfsWriter("file", "emfile")
     
     def ewouldblockRadioClicked(self, widget):
         if widget.get_active():
@@ -161,108 +179,83 @@ class TutorialApp(object):
     def eexistRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "EEXIST"
-            self.procfsWriter("eexist", 1)
-        else:
-            self.procfsWriter("eexist", 0)
+            self.procfsWriter("file", "eexist")
     
     def nonetRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "NOFAULT"
+            self.procfsWriter("net", "nofault")
 
     def enetunreachRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ENETUNREACH"
-            self.procfsWriter("enetunreach", 1)
-        else:
-            self.procfsWriter("enetunreach", 0)
+            self.procfsWriter("net", "enetunreach")
     
     def etimedoutRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ETIMEDOUT"
-            self.procfsWriter("etimedout", 1)
-        else:
-            self.procfsWriter("etimedout", 0)
+            self.procfsWriter("net", "etimedout")
     
     def econnrefusedRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ECONNREFUSED"
-            self.procfsWriter("econnrefused", 1)
-        else:
-            self.procfsWriter("econnrefused", 0)
+            self.procfsWriter("net", "econnrefused")
     
     def econnresetRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ECONNRESET"
-            self.procfsWriter("econnreset", 1)
-        else:
-            self.procfsWriter("econnreset", 0)
+            self.procfsWriter("net", "econnreset")
     
     def emsgsizeRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "EMSGSIZE"
-            self.procfsWriter("emsgsize", 1)
-        else:
-            self.procfsWriter("emsgsize", 0)
+            self.procfsWriter("net", "emsgsize")
     
     def eisconnRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "EISCONN"
-            self.procfsWriter("eisconn", 1)
-        else:
-            self.procfsWriter("eisconn", 0)
+            self.procfsWriter("net", "eisconn")
     
     def enotconnRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ENOTCONN"
-            self.procfsWriter("enotconn", 1)
-        else:
-            self.procfsWriter("enotconn", 0)
+            self.procfsWriter("net", "enotconn")
+
     
     def noprocessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "NOPROCESS"
+            self.procfsWriter("process", "nofault")
 
     def eaccesProcessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "EACCES"
-            self.procfsWriter("eaccesProcess", 1)
-        else:
-            self.procfsWriter("eaccesProcess", 0)
+            self.procfsWriter("process", "eacces_process")
 
     def enoentProcessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ENOENT"
-            self.procfsWriter("enoentProcess", 1)
-        else:
-            self.procfsWriter("enoentProcess", 0)
+            self.procfsWriter("process", "enoent_process")
 
     def enoexecRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ENOEXEC"
-            self.procfsWriter("enoexec", 1)
-        else:
-            self.procfsWriter("enoexec", 0)
+            self.procfsWriter("process", "enoexec")
 
     def enomemProcessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ENOMEM"
-            self.procfsWriter("enomemProcess", 1)
-        else:
-            self.procfsWriter("enomemProcess", 0)
+            self.procfsWriter("process", "enomem_process")
 
     def elibbadRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ELIBBAD"
-            self.procfsWriter("elibbad", 1)
-        else:
-            self.procfsWriter("elibbad", 0)
+            self.procfsWriter("process", "elibbad")
 
     def etxtbsyRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ETXTBSY"
-            self.procfsWriter("etxtbsy", 1)
-        else:
-            self.procfsWriter("etxtbsy", 0)
+            self.procfsWriter("process", "etxtbsy")
 
 
 if __name__ == "__main__":

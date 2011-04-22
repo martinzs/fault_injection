@@ -224,7 +224,7 @@ class InputScanner():
     # rozdeli vstupni soubor na tokeny
     def scan(self, data):
         tokens = self.scanner.scan(data)
-        print tokens
+        #print tokens
         if not self.lex_anal(tokens):
             print "Syntax ERROR"
             #return

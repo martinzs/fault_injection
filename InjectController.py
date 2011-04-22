@@ -13,17 +13,17 @@ class InjectController(Thread):
         self.stopthread = Event()
     
     def run(self):
-        print "Start thread"
+        #print "Start thread"
         while True:
             if self.stopthread.isSet():
                 return
-            print "cyklus"
+            #print "cyklus"
             p = subprocess.Popen("ls /proc/systemtap/", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if p.stdout:
                 moduleName = p.stdout.read()[0:-1]
                 if moduleName[0:4] == "stap":
                     self.app.moduleName = moduleName
-                    print "konec"
+                    #print "konec"
                     break
                 else:
                     time.sleep(1)

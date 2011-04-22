@@ -52,21 +52,21 @@ def main():
     # lexikalni analyza vstupniho soboru s pravidly
     scanner = InputScanner(syscallsAndErrors)
     injectValues = scanner.scan(inputData)
-    print injectValues
-    return
+    #print injectValues
+    #return
 
     # vygeneruje soubor pro systemtap
     generator = GenerateStap()
     generator.generate("inject3.stp", injectValues, disableSyscalls)
 
     # vlozi odpovidajici chyby podle zadaneho vstupu
-    injector = Injector(command)
+    injector = Injector(command, "inject3.stp")
     injector.start()
 
     # vytvoreni vlakna, ktere bude nacitat data ze vstupu
     if disableSyscalls == 1:
-        inputCtrl = InputController(injectValues)
-        inputCtrl.start()
+        injectCtrl = InjectController()
+        injectCtrl.start()
 
     
     

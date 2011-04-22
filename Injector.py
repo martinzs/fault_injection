@@ -7,7 +7,7 @@ import time
 from threading import Thread
 
 class Injector(Thread):
-    def __init__(self, command, stapFilename, app):
+    def __init__(self, command, stapFilename, app=None):
         Thread.__init__(self)
         self.command = command
         self.stapFilename = stapFilename
@@ -15,5 +15,6 @@ class Injector(Thread):
     
     def run(self):
         os.system("stap " + self.stapFilename + " -g -c \"" + self.command + "\"")
-        self.app.endTestApp()
+        if self.app != None:
+            self.app.endTestApp()
         

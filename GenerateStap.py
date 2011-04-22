@@ -203,143 +203,71 @@ global elibbad_enable = """ + ("1" if enableFault["process"] == "ELIBBAD" else "
 global etxtbsy_enable = """ + ("1" if enableFault["process"] == "ETXTBSY" else "0") + """
 
 
-probe procfs("eacces").write
+probe procfs("file").write
 {
-    if ($value == "1\\n")
+    eacces_enable = 0
+    enoent_enable = 0
+    emfile_enable = 0
+    eexist_enable = 0
+    if ($value == "eacces\\n")
         eacces_enable = 1
-    else
-        eacces_enable = 0
-}
-
-probe procfs("enoent").write
-{
-    if ($value == "1\\n")
+    else if ($value == "enoent\\n")
         enoent_enable = 1
-    else
-        enoent_enable = 0
-}
-
-probe procfs("emfile").write
-{
-    if ($value == "1\\n")
+    else if ($value == "emfile\\n")
         emfile_enable = 1
-    else
-        emfile_enable = 0
-}
-
-
-
-probe procfs("eexist").write
-{
-    if ($value == "1\\n")
+    else if ($value == "eexist\\n")
         eexist_enable = 1
-    else
-        eexist_enable = 0
 }
 
-probe procfs("enetunreach").write
+
+probe procfs("net").write
 {
-    if ($value == "1\\n")
+    enetunreach_enable = 0
+    etimedout_enable = 0
+    econnrefused_enable = 0
+    econnreset_enable = 0
+    emsgsize_enable = 0
+    eisconn_enable = 0
+    enotconn_enable = 0
+
+    if ($value == "enetunreach\\n")
         enetunreach_enable = 1
-    else
-        enetunreach_enable = 0
-}
-
-probe procfs("etimedout").write
-{
-    if ($value == "1\\n")
+    else if ($value == "etimedout\\n")
         etimedout_enable = 1
-    else
-        etimedout_enable = 0
-}
-
-probe procfs("econnrefused").write
-{
-    if ($value == "1\\n")
+    else if ($value == "econnrefused\\n")
         econnrefused_enable = 1
-    else
-        econnrefused_enable = 0
-}
-
-probe procfs("econnreset").write
-{
-    if ($value == "1\\n")
+    else if ($value == "econnreset\\n")
         econnreset_enable = 1
-    else
-        econnreset_enable = 0
-}
-
-probe procfs("emsgsize").write
-{
-    if ($value == "1\\n")
+    else if ($value == "emsgsize\\n")
         emsgsize_enable = 1
-    else
-        emsgsize_enable = 0
-}
-
-probe procfs("eisconn").write
-{
-    if ($value == "1\\n")
+    else if ($value == "eisconn\\n")
         eisconn_enable = 1
-    else
-        eisconn_enable = 0
-}
-
-probe procfs("enotconn").write
-{
-    if ($value == "1\\n")
+    else if ($value == "enotconn\\n")
         enotconn_enable = 1
-    else
-        enotconn_enable = 0
 }
 
 
-probe procfs("eacces_process").write
+probe procfs("process").write
 {
-    if ($value == "1\\n")
+    eacces_process_enable = 0
+    enoent_process_enable = 0
+    enoexec_enable = 0
+    enomem_process_enable = 0
+    elibbad_enable = 0
+    etxtbsy_enable = 0
+
+    if ($value == "eacces_process\\n")
         eacces_process_enable = 1
-    else
-        eacces_process_enable = 0
-}
-
-probe procfs("enoent_process").write
-{
-    if ($value == "1\\n")
+    else if ($value == "enoent_process\\n")
         enoent_process_enable = 1
-    else
-        enoent_process_enable = 0
-}
-
-probe procfs("enoexec").write
-{
-    if ($value == "1\\n")
+    else if ($value == "enoexec\\n")
         enoexec_enable = 1
-    else
-        enoexec_enable = 0
-}
-
-probe procfs("enomem_process").write
-{
-    if ($value == "1\\n")
+    else if ($value == "enomem_process\\n")
         enomem_process_enable = 1
-    else
-        enomem_process_enable = 0
-}
-
-probe procfs("elibbad").write
-{
-    if ($value == "1\\n")
+    else if ($value == "elibbad\\n")
         elibbad_enable = 1
-    else
-        elibbad_enable = 0
-}
-
-probe procfs("etxtbsy").write
-{
-    if ($value == "1\\n")
+    else if ($value == "etxtbsy\\n")
         etxtbsy_enable = 1
-    else
-        etxtbsy_enable = 0
 }
 
 
