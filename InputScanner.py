@@ -229,23 +229,37 @@ class InputScanner():
             print "Syntax ERROR"
             #return
             
-        injectValues = []
+        injectValues = {}
         params = []
-        ecode = []
+        paramCount = 0
+        notEmptyParam = False
+        syscall = ""
+        ecode = ""
         #enable_d = 0
         for t in tokens[0]:
             if t[1] == SYSCALL:
-                if params != []:
-                    params[1] = ecode
-                    injectValues.append(params)
+                if syscall != "":
+                    #params[1] = ecode
+                    if not notEmptyParam:
+                        params = []
+                    else:
+                        for p in range(paramCount, 6):
+                            params.append("")
+                    injectValues[syscall].append((ecode, params))
                     params = []
-                    ecode = []
+                    ecode = ""
+                    notEmptyParam = False
                 #enable_d = 0
-                params.append(t[0])
-                params.append(0)
-                #params.append(1)
+                syscall = t[0]
+                if syscall not in injectValues.keys():
+                    injectValues[syscall] = []
+                #params.append(t[0])
+                #params.append(0)
+                
             elif t[1] == PARAM:
                 params.append(t[0])
+                paramCount += 1
+                notEmptyParam = True
             #elif t[1] == R_BRACKET:
             #    enable_d = 1
             #elif t[1] == DIGIT:
@@ -254,21 +268,28 @@ class InputScanner():
             #    else:
             #        params.append(t[0])
             elif t[1] == MINUS:
-                params.append("''")
-            elif t[1] == ALL:
-                for e in self.syscallsAndErrors[0][params[0]]:
-                    ecode.append(self.syscallsAndErrors[0][params[0]][e])
+                params.append("")
+                paramCount += 1
+            #elif t[1] == ALL:
+            #    for e in self.syscallsAndErrors[0][params[0]]:
+            #        ecode.append(self.syscallsAndErrors[0][params[0]][e])
             elif t[1] == ECODE:
                 #try:
-                ecode.append(self.syscallsAndErrors[0][params[0]][t[0]])
+                #ecode.append(self.syscallsAndErrors[0][params[0]][t[0]])
+                ecode = t[0]
                 #except:
                 #    pass
                 #else:
         
-        params[1] = ecode
-        injectValues.append(params)
+        #params[1] = ecode
+        if not notEmptyParam:
+            params = []
+        else:
+            for p in range(paramCount, 6):
+                params.append("")
+        injectValues[syscall].append((ecode, params))
                 
-        injectValues.sort()
+        #injectValues.sort()
         return injectValues
         """
         injectValuesStr = ""

@@ -6,15 +6,11 @@ class GenerateStap():
     def __init__(self):
         pass
     
-    def printProbe(self, stap, syscallName, disableSyscalls):
+    def printProbe(self, stap, syscallName):
         stap.write("probe syscall." + syscallName +  """
 {
     if (pid() == target())
     {""")
-        if disableSyscalls == 1:
-            stap.write("""
-        if (enable_""" + syscallName + """ == 1)
-        {""")
         stap.write("""
             arguments = argstr
             separatorLength = 0
@@ -31,74 +27,82 @@ class GenerateStap():
                 i++
                 token = mytokenize(arguments, ", ")
             }""")
-        if disableSyscalls == 1:
-           stap.write("\n}\n")
         stap.write("""
     }
 }
 
 """)
       
-    def printProbeReturn(self, stap, args, previousSyscall, disableSyscalls):
-        i = 0
-        returnCode = ""
-        name = ""
-        bracketCount = 0
-        
-        for a in args:
-            if i == 0:
-                name = a
-                if previousSyscall != a:
-                    #Druha moznost
-                    stap.write("global last_" + a + " = 0\n\n")
-                    stap.write("\nprobe syscall." + a + ".return\n{")
-                    if disableSyscalls == 1:
-                        stap.write("""
-    if (enable_""" + a + """ == 1)
-    {""")
-                    stap.write("""
-        if (pid() == target())
-        {""")
-   
-            elif i == 1:
-                returnCode = a
-            else:
-                if a != "''":
-                    stap.write("if (syscall_args[" + str(i - 1) + "] == \"" + a + "\")\n{\n")
-                    bracketCount += 1
-            i += 1
-        
-        j = 0     
-        for c in returnCode:
-            stap.write("ecode[" + str(j) + "] = -" + c + "\n")
-            j += 1
-            
-        # Prvni moznost
-        #stap.write("$return = ecode[randint(" + str(j) + ")]\n")
-        
-        #Druha moznost
-        stap.write("$return = ecode[last_" + name + "]\n")
-        stap.write("last_" + name + "++\n")
-        stap.write("if (last_" + name + " == " + str(j) + ")\n")
-        stap.write("    last_" + name + " = 0\n")
-        
-        for j in range(bracketCount):
-            stap.write("}\n")
-        
-    def printProcfs(self, stap, syscallName):
-        stap.write("""
-global enable_""" + syscallName + """ = 0
-
-probe procfs(\"""" + syscallName + """\").write
+    def printProbeReturn(self, stap, syscall, errorsAndArgs, startValue, returnCode):
+        first = True;
+        stap.write("""    
+probe syscall.""" + syscall + """.return
 {
-    if ($value == \"1\\n\")
-        enable_""" + syscallName + """ = 1
-    else
-        enable_""" + syscallName + """ = 0
+    if (pid() == target())
+    {
+        """)
+        for e in errorsAndArgs:
+            if first:
+                first = False
+                stap.write("""
+        if (""" + syscall + "_" + e[0] + """ == 1)
+        {""")
+            else:
+                stap.write("""
+        else if (""" + syscall + "_" + e[0] + """ == 1)
+        {""")    
+            i = 0
+            bracketCount = 0
+            for a in e[1]:
+                i += 1
+                if a != "":
+                    bracketCount += 1
+                    stap.write("""
+            if (syscall_args[""" + str(i) + "] == \"" + a + """\")
+            {""")
+            stap.write("""
+            $return = -""" + returnCode[e[0]])
+            for i in range(bracketCount):
+                stap.write("""
+            }""")     
+            stap.write("""
+        }""")   
+        stap.write("""
+    }
 }
+
+""")
+       
+
+        
+    def printProcfs(self, stap, syscall, errorsAndArgs, startValue):
+        first = True
+        for e in errorsAndArgs:
+            stap.write("global " + syscall + "_" + e[0] + " = " + ("1" if startValue[syscall] == e[0] else "0") + "\n")
+        stap.write("""
+probe procfs(\"""" + syscall + """\").write
+{
+    """)
+        for e in errorsAndArgs:
+            stap.write(syscall + "_" + e[0] + " = 0\n")
+
+        for e in errorsAndArgs:
+            if first:
+                first = False
+                stap.write("""
+    if ($value == \"""" + e[0] + """\\n\")
+        """ + syscall + "_" + e[0] + " = 1")
+            else:
+                stap.write("""
+    else if ($value == \"""" + e[0] + """\\n\")
+        """ + syscall + "_" + e[0] + " = 1")
+        stap.write("""
+}
+
 """)
                 
-    def printPrologue(self, stap):
+                
+    def printPrologue(self, stap):    
         stap.write("""global syscall_args
     
 function mytokenize:string(input:string, delim:string)
@@ -141,13 +145,19 @@ function mytokenize:string(input:string, delim:string)
         }
 %} 
 
-global ecode
-
 """)
 
           
-    def generate(self, stapFilename, injectedValues, disableSyscalls):
+    def generate(self, stapFilename, injectedValues, startValue, returnCode):
+        print "generate", injectedValues
         stap = file(stapFilename, 'w')
+        self.printPrologue(stap)
+        for key in injectedValues.keys():
+            self.printProcfs(stap, key, injectedValues[key], startValue)
+            self.printProbe(stap, key)
+            self.printProbeReturn(stap, key, injectedValues[key], startValue, returnCode)
+        
+        """
         self.printPrologue(stap)
         previousSyscall = ""
         for i in injectedValues:
@@ -166,7 +176,7 @@ global ecode
             stap.write("}\n}\n}\n")
         else:
             stap.write("}\n}\n")
-        
+        """
 
 
 #global ewouldblock_enable = """ + "1" if enableFault["file"] == "EWOULDBLOCK" else "0" + """
