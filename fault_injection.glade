@@ -230,10 +230,16 @@
               </packing>
             </child>
             <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
+              <object class="GtkProgressBar" id="progressbar">
+                <property name="activity_mode">True</property>
+                <property name="text" translatable="yes">Compilation</property>
+              </object>
+              <packing>
+                <property name="left_attach">4</property>
+                <property name="right_attach">6</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
             </child>
             <child>
               <placeholder/>
@@ -270,7 +276,7 @@
                             <property name="visible">True</property>
                             <property name="spacing">10</property>
                             <child>
-                              <object class="GtkVBox" id="vbox2">
+                              <object class="GtkVBox" id="vboxFile">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="fileLabel">
@@ -309,7 +315,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="permisssionRadiobutton">
+                                  <object class="GtkRadioButton" id="fileEACCESRadio">
                                     <property name="label" translatable="yes">Permission denied</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -324,7 +330,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="notexistRadiobutton">
+                                  <object class="GtkRadioButton" id="fileENOENTRadio">
                                     <property name="label" translatable="yes">File does not exist</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -339,7 +345,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="toomanyRadiobutton">
+                                  <object class="GtkRadioButton" id="fileEMFILERadio">
                                     <property name="label" translatable="yes">Too many open files</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -354,7 +360,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="existRadiobutton">
+                                  <object class="GtkRadioButton" id="fileEEXISTRadio">
                                     <property name="label" translatable="yes">File exists</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -383,7 +389,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkVBox" id="vbox3">
+                              <object class="GtkVBox" id="vboxNet">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="netLabel">
@@ -421,7 +427,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="unreachableRadiobutton">
+                                  <object class="GtkRadioButton" id="netENETUNREACHRadio">
                                     <property name="label" translatable="yes">Network is unreachable</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -436,7 +442,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton2">
+                                  <object class="GtkRadioButton" id="netETIMEDOUTRadio">
                                     <property name="label" translatable="yes">Connection timed out</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -451,7 +457,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton3">
+                                  <object class="GtkRadioButton" id="netECONNREFUSEDRadio">
                                     <property name="label" translatable="yes">Connection refused</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -466,7 +472,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton4">
+                                  <object class="GtkRadioButton" id="netECONNRESETRadio">
                                     <property name="label" translatable="yes">Connection reset by peer</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -481,7 +487,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton5">
+                                  <object class="GtkRadioButton" id="netEMSGSIZERadio">
                                     <property name="label" translatable="yes">Message too long</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -496,7 +502,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton6">
+                                  <object class="GtkRadioButton" id="netEISCONNRadio">
                                     <property name="label" translatable="yes">Endpoint is already connected</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -511,7 +517,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton7">
+                                  <object class="GtkRadioButton" id="netENOTCONNRadio">
                                     <property name="label" translatable="yes">Endpoint is not connected</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -540,7 +546,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkVBox" id="vbox4">
+                              <object class="GtkVBox" id="vboxProcess">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="processLabel">
@@ -682,7 +688,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkVBox" id="vbox5">
+                              <object class="GtkVBox" id="vboxMemory">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="memLabel">
@@ -712,6 +718,7 @@
                                     <property name="receives_default">False</property>
                                     <property name="active">True</property>
                                     <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="noMemoryRadio"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -719,22 +726,171 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton15">
-                                    <property name="label" translatable="yes">radiobutton</property>
+                                  <object class="GtkRadioButton" id="memoryENOMEMRadio">
+                                    <property name="label" translatable="yes">No memory is available</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="draw_indicator">True</property>
                                     <property name="group">nomemRadio</property>
+                                    <signal name="toggled" handler="memoryEnomemRadio"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="position">3</property>
                                   </packing>
                                 </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="memoryEACCESRadio">
+                                    <property name="label" translatable="yes">Invalid access</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">nomemRadio</property>
+                                    <signal name="toggled" handler="memoryEaccesRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">4</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="memoryEAGAINRadio">
+                                    <property name="label" translatable="yes">Memory locked</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">nomemRadio</property>
+                                    <signal name="toggled" handler="memoryEagainRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">5</property>
+                                  </packing>
+                                </child>
                               </object>
                               <packing>
                                 <property name="position">6</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkVSeparator" id="vseparator5">
+                                <property name="visible">True</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">7</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkVBox" id="vboxRw">
+                                <property name="visible">True</property>
+                                <child>
+                                  <object class="GtkLabel" id="rwLabel">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">Read/Write</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkHSeparator" id="hseparator5">
+                                    <property name="height_request">20</property>
+                                    <property name="visible">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="noRwRadio">
+                                    <property name="label" translatable="yes">No fault</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                    <signal name="toggled" handler="noRwRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="rwEBADFRadio">
+                                    <property name="label" translatable="yes">Bad file descriptor</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">noRwRadio</property>
+                                    <signal name="toggled" handler="rwEbadfRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">3</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="rwEIORadio">
+                                    <property name="label" translatable="yes">Low-level I/O error</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">noRwRadio</property>
+                                    <signal name="toggled" handler="rwEioRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">4</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="rwEFBIGRadio">
+                                    <property name="label" translatable="yes">File too large</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">noRwRadio</property>
+                                    <signal name="toggled" handler="rwEfbigRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">5</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="rwENOSPCRadio">
+                                    <property name="label" translatable="yes">No space left on device</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">noRwRadio</property>
+                                    <signal name="toggled" handler="rwEnospcRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">6</property>
+                                  </packing>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="position">8</property>
                               </packing>
                             </child>
                           </object>
@@ -865,7 +1021,7 @@
             <property name="label_xalign">0</property>
             <property name="shadow_type">none</property>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindow2">
+              <object class="GtkScrolledWindow" id="scrolledwindowLog">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hscrollbar_policy">automatic</property>
@@ -875,10 +1031,12 @@
                     <property name="visible">True</property>
                     <property name="resize_mode">queue</property>
                     <child>
-                      <object class="GtkTreeView" id="treeview1">
+                      <object class="GtkTextView" id="textViewLog">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="model">liststore2</property>
+                        <property name="editable">False</property>
+                        <property name="cursor_visible">False</property>
+                        <property name="buffer">textBuffer</property>
                       </object>
                     </child>
                   </object>
@@ -899,5 +1057,12 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkTextBuffer" id="textBuffer"/>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <property name="page_size">10</property>
   </object>
 </interface>

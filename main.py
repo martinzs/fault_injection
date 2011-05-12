@@ -57,7 +57,7 @@ def main():
 
     # vygeneruje soubor pro systemtap
     generator = GenerateStap()
-    generator.generate("inject3.stp", injectValues, disableSyscalls)
+    generator.generateCmdLine("inject3.stp", injectValues, syscallsAndErrors[1])
 
     # vlozi odpovidajici chyby podle zadaneho vstupu
     injector = Injector(command, "inject3.stp")
