@@ -2,6 +2,7 @@
 
 
 import os
+import sys
 import subprocess
 import time
 import signal
@@ -16,7 +17,8 @@ class Injector(Thread):
         self.exit = False
     
     def run(self):
-        self.p = subprocess.Popen("stap " + self.stapFilename + " -g -c \"" + self.command + "\"",  shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.exit = False
+        self.p = subprocess.Popen("stap " + self.stapFilename + " -g -c \"" + self.command + "\"",  shell=True, preexec_fn=os.setsid, stdout=subprocess.PIPE)#, stderr=subprocess.STDOUT)
         #os.system("stap " + self.stapFilename + " -g -c \"" + self.command + "\"")
         while self.p.returncode == None:
             if self.exit:
@@ -34,6 +36,7 @@ class Injector(Thread):
             self.p.poll()
         if self.app != None:
             self.app.endTestApp()
+            self.exit = True
             
     def terminate(self):
         #self.p.send_signal(signal.SIGINT)
@@ -43,3 +46,5 @@ class Injector(Thread):
         #    pass
         self.exit = True
         
+    def isRunning(self):
+        return not self.exit

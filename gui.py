@@ -126,6 +126,11 @@ class TutorialApp(object):
         self.checkError()
         
         self.progress = self.builder.get_object("progressbar")
+        self.imageYes =self.builder.get_object("imageYes")
+        self.imageYes.set_visible(False)
+        self.imageNo =self.builder.get_object("imageNo")
+        self.labelStatus = self.builder.get_object("labelStatus")
+        
     
     def checkError(self):
         syscalls = self.syscallsAndErrors[0].keys()
@@ -137,16 +142,52 @@ class TutorialApp(object):
             openSyscall = self.syscallsAndErrors[0]["open"]
             if "EACCES" not in openSyscall:
                 errorRadio = self.builder.get_object("fileEACCESRadio")
-                errorRadio.set_sensistive(False)
+                errorRadio.set_sensitive(False)
             if "ENOENT" not in openSyscall:
                 errorRadio = self.builder.get_object("fileENOENTRadio")
-                errorRadio.set_sensistive(False)
+                errorRadio.set_sensitive(False)
             if "EMFILE" not in openSyscall:
                 errorRadio = self.builder.get_object("fileEMFILERadio")
-                errorRadio.set_sensistive(False)
+                errorRadio.set_sensitive(False)
             if "EEXIST" not in openSyscall:
                 errorRadio = self.builder.get_object("fileEEXISTRadio")
-                errorRadio.set_sensistive(False)
+                errorRadio.set_sensitive(False)
+                
+        if "execve" not in syscalls and "fork" not in syscalls:
+            vbox = self.builder.get_object("vboxProcess")
+            vbox.set_sensitive(False)
+            self.missingSyscall.append("open")
+        else:
+            try:
+                execveSyscall = self.syscallsAndErrors[0]["execve"]
+            except KeyError:
+                execveSyscall = []
+                self.missingSyscall.append("execve")
+            try:
+                forkSyscall = self.syscallsAndErrors[0]["fork"]
+            except KeyError:
+                forkSyscall = []
+                self.missingSyscall.append("fork")
+            if "EACCES" not in execveSyscall:
+                errorRadio = self.builder.get_object("processEACCESRadio")
+                errorRadio.set_sensitive(False)
+            if "ENOENT" not in execveSyscall:
+                errorRadio = self.builder.get_object("processENOENTRadio")
+                errorRadio.set_sensitive(False)
+            if "ENOEXEC" not in execveSyscall:
+                errorRadio = self.builder.get_object("processENOEXECRadio")
+                errorRadio.set_sensitive(False)
+            if "ENOMEM" not in execveSyscall and "ENOMEM" not in forkSyscall:
+                errorRadio = self.builder.get_object("processENOMEMRadio")
+                errorRadio.set_sensitive(False)
+            if "ELIBBAD" not in execveSyscall:
+                errorRadio = self.builder.get_object("processELIBBADRadio")
+                errorRadio.set_sensitive(False)
+            if "ETXTBSY" not in execveSyscall:
+                errorRadio = self.builder.get_object("processETXTBSYRadio")
+                errorRadio.set_sensitive(False)
+
+
                 
         if "connect" not in syscalls and "send" not in syscalls and "sendto" not in syscalls and "sendmsg" not in syscalls and "recv" not in syscalls and "recvfrom" not in syscalls and "recvmsg" not in syscalls:
             vbox = self.builder.get_object("vboxNet")
@@ -326,6 +367,11 @@ class TutorialApp(object):
             
         self.progress.set_fraction(0.0)
         self.progress.set_visible(True)
+        self.labelStatus.set_label("Running")
+        self.imageYes.set_visible(True)
+        self.imageNo.set_visible(False)
+        
+        #self.showProgress()
         
         self.logText = ""
         self.textBuffer.set_text(self.logText)
@@ -366,6 +412,12 @@ class TutorialApp(object):
         startButton.set_sensitive(True)
         self.panely.set_sensitive(True)
         self.progress.set_visible(False)
+        
+        self.labelStatus.set_label("Stopped")
+        self.labelStatus.set_visible(True)
+#        self.labelStatus.set_sensitive(True)
+        self.imageYes.set_visible(False)
+        self.imageNo.set_visible(True)
         
     def termButtonClicked(self, widget):
         #self.endTestApp()
@@ -428,7 +480,7 @@ class TutorialApp(object):
         if response == gtk.RESPONSE_OK:
             filePath = fileDialog.get_filename()
             if os.path.exists(filePath):
-                msgDlg = gtk.MessageDialog(type=gtk.MESSAGE_QUESTION, buttons=gtk.BUTTONS_YES_NO, message_format="File exists. Do you rewrite this file?")
+                msgDlg = gtk.MessageDialog(type=gtk.MESSAGE_QUESTION, buttons=gtk.BUTTONS_YES_NO, message_format="File exists. Do you want to overwrite this file?")
                 res = msgDlg.run()
                 msgDlg.destroy()
                 if res == gtk.RESPONSE_YES:
@@ -522,6 +574,7 @@ class TutorialApp(object):
                 for i in range(len(self.faults[syscall])):
                     if self.faults[syscall][i][0] == error:
                         del self.faults[syscall][i]
+                        break
                 if self.faults[syscall] == []:
                     del self.faults[syscall]
             except KeyError:
@@ -533,10 +586,17 @@ class TutorialApp(object):
                 pas
             print "ok"
     
-    def mainDeleteEvent(self, widget, event):
+    def mainDeleteEvent(self, widget, event): 
+        if self.injector != None:
+            if self.injector.isRunning():
+                self.injector.terminate()
         if self.faultsEdited:
             msgDlg = gtk.MessageDialog(type=gtk.MESSAGE_QUESTION, buttons=gtk.BUTTONS_YES_NO, message_format="Faults have been edited. Do you want to save faults?")
+            msgDlg.add_button("Cancel", gtk.RESPONSE_CLOSE)
             res = msgDlg.run()
+            if res == gtk.RESPONSE_CLOSE:
+                msgDlg.destroy()
+                return True
             if res == gtk.RESPONSE_YES:
                 self.save(widget)
                 msgDlg.destroy()
@@ -573,6 +633,7 @@ class TutorialApp(object):
                 if res == gtk.RESPONSE_YES:
                     self.save(widget)
                 msgDlg.destroy()
+            self.faultsEdited = False
             self.modeBasic = True
             frame1 = self.builder.get_object("frame1")
             frame2 = self.builder.get_object("frame2")
@@ -764,8 +825,8 @@ class TutorialApp(object):
         
     def rwEnospcRadioClicked(self, widget):
         if widget.get_active():
-            self.enableFault["rw"] = "NORW"
-            self.procfsWriter("rw", "nofault")
+            self.enableFault["rw"] = "ENOSPC"
+            self.procfsWriter("rw", "enospc")
         
             
 if __name__ == "__main__":

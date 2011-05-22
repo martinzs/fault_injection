@@ -50,13 +50,19 @@ probe syscall.""" + syscall + """.return
         for e in errorsAndArgs:
             if first:
                 first = False
-                stap.write("""
+                try:
+                    stap.write("""
         if (""" + syscall + "_" + e[0] + """ == 1)
         {""")
+                except KeyError:
+                    pass
             else:
-                stap.write("""
+                try:
+                    stap.write("""
         else if (""" + syscall + "_" + e[0] + """ == 1)
         {""")    
+                except KeyError:
+                    pass
             i = 0
             bracketCount = 0
             for a in e[1]:
@@ -66,10 +72,13 @@ probe syscall.""" + syscall + """.return
                     stap.write("""
             if (syscall_args[""" + str(i) + "] == \"" + a + """\")
             {""")
-            stap.write("""
+            try:
+                stap.write("""
             $return = -""" + returnCode[e[0]] + """
             printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
             """)
+            except KeyError:
+                pass
             for i in range(bracketCount):
                 stap.write("""
             }""")     
@@ -106,10 +115,14 @@ probe syscall.""" + syscall + """.return
                     stap.write("""
         if (syscall_args[""" + str(i) + "] == \"" + a + """\")
         {""")
-            stap.write("""
+            
+            try:
+                stap.write("""
         $return = -""" + returnCode[e[0]] + """
         printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
         """)
+            except KeyError:
+                pass
             for i in range(bracketCount):
                 stap.write("""
         }""")        
@@ -364,12 +377,14 @@ probe procfs("rw").write
     efbig_rw_enable = 0
     enospc_rw_enable = 0
 
-    if ($value == "enomem\\n")
-        enomem_memory_enable = 1
-    else if ($value == "eacces\\n")
-        eacces_memory_enable = 1
-    else if ($value == "eagain\\n")
-        eagain_memory_enable = 1
+    if ($value == "ebadf\\n")
+        ebadf_rw_enable = 1
+    else if ($value == "eio\\n")
+        eio_rw_enable = 1
+    else if ($value == "efbig\\n")
+        efbig_rw_enable = 1
+    else if ($value == "enospc\\n")
+        enospc_rw_enable = 1
 
 }
 
@@ -1042,6 +1057,7 @@ probe syscall.brk.return
 
 
         if "write" not in missingSyscall:
+            print "write"
             stap.write("""
 probe syscall.write.return
 {
@@ -1143,6 +1159,112 @@ probe syscall.read.return
 }
 """)
 
+        if "execve" not in missingSyscall:
+            stap.write("""
+probe syscall.execve.return
+{
+    if (pid() == target())
+    {
+        returnOld = $return
+        if ($return >= 0)
+            errnoOld = 0
+        else
+            errnoOld = $return
+            
+        """)
+            try:
+                stap.write("""
+        if (eacces_process_enable == 1)
+        {
+            $return = -""" + returnCode["EACCES"] + """
+            printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
+        }
+        else """)
+            except KeyError:
+                pass
+            try:
+                stap.write("""
+        if (enoent_process_enable == 1)
+        {
+            $return = -""" + returnCode["ENOENT"] + """
+            printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
+        }
+        else """)
+            except KeyError:
+                pass
+            try:
+                stap.write("""
+        if (enoexec_enable == 1)
+        {
+            $return = -""" + returnCode["ENOEXEC"] + """
+            printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
+        }
+        else """)
+            except KeyError:
+                pass
+            try:
+                stap.write("""
+        if (enomem_process_enable == 1)
+        {
+            $return = -""" + returnCode["ENOMEM"] + """
+            printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
+        }
+        else """)
+            except KeyError:
+                pass
+            try:
+                stap.write("""
+        if (elibbad_enable == 1)
+        {
+            $return = -""" + returnCode["ELIBBAD"] + """
+            printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
+        }
+        else """)
+            except KeyError:
+                pass
+            try:
+                stap.write("""
+        if (etxtbsy_enable == 1)
+        {
+            $return = -""" + returnCode["ETXTBSY"] + """
+            printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
+        }
+        else """)
+            except KeyError:
+                pass
+            stap.write("""
+        {}
+    }
+}
+""")
 
+        if "fork" not in missingSyscall:
+            stap.write("""
+probe syscall.fork.return
+{
+    if (pid() == target())
+    {
+        returnOld = $return
+        if ($return >= 0)
+            errnoOld = 0
+        else
+            errnoOld = $return
+            
+        """)
+            try:
+                stap.write("""
+        if (enomem_process_enable == 1)
+        {
+            $return = -""" + returnCode["ENOMEM"] + """
+            printf("$$%s () = %d %s -> %d %s\\n", name, returnOld, errno_str(errnoOld), $return, errno_str($return))
+        }
+        else """)
+            except KeyError:
+                pass
+            stap.write("""
+        {}
+    }
+}
+""")
 
 

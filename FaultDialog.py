@@ -36,15 +36,18 @@ class FaultDialog():
         
         # List of errors
         self.errorView = self.builder.get_object("errorTreeview")
-        self.errorList = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_BOOLEAN)
+        self.errorList = gtk.ListStore(gobject.TYPE_BOOLEAN, gobject.TYPE_STRING, gobject.TYPE_STRING)
         self.errorView.set_model(self.errorList)
-        column = gtk.TreeViewColumn("Errors", gtk.CellRendererText(), text=0)
-        self.errorView.append_column(column)
         cell = gtk.CellRendererToggle()
         cell.connect("toggled", self.errorToggled, self.errorList)
-        column = gtk.TreeViewColumn("Select", cell, active=1)
+        column = gtk.TreeViewColumn("Select", cell, active=0)
         column.set_clickable(True)
         self.errorView.append_column(column)
+        column = gtk.TreeViewColumn("Errors", gtk.CellRendererText(), text=1)
+        self.errorView.append_column(column)
+        column = gtk.TreeViewColumn("Desription", gtk.CellRendererText(), text=2)
+        self.errorView.append_column(column)
+        
         
         self.returnValue = (False, None)
         self.dlg.run()
@@ -53,7 +56,7 @@ class FaultDialog():
         
     def errorToggled(self, widget, index, errorList):
         row = errorList.get_iter((int(index),))
-        selected = errorList.get_value(row, 1)
+        selected = errorList.get_value(row, 0)
 
         selected = not selected
         if selected:
@@ -63,7 +66,7 @@ class FaultDialog():
             self.counterTrue -= 1
             if self.counterTrue == 0:
                 self.addButton.set_sensitive(False)
-        errorList.set(row, 1, selected)
+        errorList.set(row, 0, selected)
 
 
     def syscallsComboboxChanged(self, widget):
@@ -74,7 +77,7 @@ class FaultDialog():
         self.errorList.clear()
         for e in self.syscallsAndErrors[0][syscallsModel[index][0]]:
             if [self.selectedSyscall, e] not in self.existedFaults:
-                self.errorList.append([e, False])
+                self.errorList.append([False, e, self.syscallsAndErrors[2][e]])
         
         
     def faultDialogClose(self, widget, response):
@@ -89,9 +92,9 @@ class FaultDialog():
         errors = []
         row = self.errorList.get_iter_first()
         while row != None:
-            selected = self.errorList.get_value(row, 1)
+            selected = self.errorList.get_value(row, 0)
             if selected:
-                errors.append(self.errorList.get_value(row, 0))
+                errors.append(self.errorList.get_value(row, 1))
             row = self.errorList.iter_next(row)
         args = []
         arg1 = self.builder.get_object("arg1Entry")

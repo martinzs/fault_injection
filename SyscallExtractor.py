@@ -32,11 +32,12 @@ class SyscallExtractor():
         f = file(filename2, 'r')
         data += f.read()
         f.close()
-        r = re.compile("#define[ \t]+([A-Z]+)[ \t]+([0-9]+)")
+#        r = re.compile("#define[ \t]+([A-Z]+)[ \t]+([0-9]+)")
+        r = re.compile("#define[ \t]+([A-Z]+)[ \t]+([0-9]+)([ \t]+/\*([^*]+)\*/)?")
         codes = r.findall(data)
         returnCodes = {}
         for code in codes:
-            returnCodes[code[0]] = code[1]
+            returnCodes[code[0]] = (code[1], code[3])
         return returnCodes
 
 
@@ -91,29 +92,43 @@ class SyscallExtractor():
     def extract(self, filename):
         syscallsAndErrors = {}
         returnCode = {}
+        message = {}
+        returnCodeAndMsg = {}
         try:
             syscallFile = file(filename, 'r')
         except IOError:
             syscallFile = file(filename, 'w')
             syscalls = self.findSyscalls("/usr/include/bits/syscall.h")
-            returnCode = self.findReturnCode("/usr/include/asm-generic/errno.h", "/usr/include/asm-generic/errno-base.h")
+            syscalls.sort()
+            returnCodeAndMsg = self.findReturnCode("/usr/include/asm-generic/errno.h", "/usr/include/asm-generic/errno-base.h")
+            for k in returnCodeAndMsg.keys():
+                returnCode[k] = returnCodeAndMsg[k][0]
+                message[k] = returnCodeAndMsg[k][1]
             for s in syscalls:
                 syscallFile.write(s + ": \n")
                 err = self.findErrors(s) 
                 errors = {}
                 for e in err:
                     try:
-                        code = returnCode[e]
-                        errors[e] = code
-                        syscallFile.write("\t" + e + "\t" + code + "\n")
+                        code = returnCodeAndMsg[e]
+                        if e not in errors.keys():
+                            errors[e] = code[0]
+                            syscallFile.write("\t" + e + "\t" + code[0] + ":\t" + code[1] + "\n")
                     except:
                         pass
+                syscall = s.rstrip("at2") 
+                if syscall in syscalls and syscall != s:
+                    for k in syscallsAndErrors[syscall].keys():
+                        code = syscallsAndErrors[syscall][k]
+                        if k not in errors.keys():
+                            errors[e] = k
+                            syscallFile.write("\t" + k + "\t" + code + ":\t" + message[k] + "\n")
                 syscallsAndErrors[s] = errors
                 syscallFile.write(";\n")
         else:
             data = syscallFile.read()
             rSyscalls = re.compile("(\w+):\s((\s|\S)*?);")
-            rErrors = re.compile("\s*(\w+)\t(\d+)\n")
+            rErrors = re.compile("\s*(\w+)\t(\d+):\t(.*)\n")
             foundSyscalls = rSyscalls.findall(data)
             for s in foundSyscalls:
                 foundErrors = rErrors.findall(s[1])
@@ -121,15 +136,16 @@ class SyscallExtractor():
                 for e in foundErrors:
                     errors[e[0]] = e[1]
                     returnCode[e[0]] = e[1]
+                    message[e[0]] = e[2]
                 syscallsAndErrors[s[0]] = errors
-        return (syscallsAndErrors, returnCode)
+        return (syscallsAndErrors, returnCode, message)
                 
             
 
 def main():
     extractor = SyscallExtractor()
     syscalls = extractor.extract("syscalls")
-    print syscalls
+    #print syscalls
 
         
 
