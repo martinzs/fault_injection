@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Soubor: fi-gui.py
+# Popis:  Graficke uzivatelske rozhrani - hlavni okno
+# Autor:  Martin Zelinka, xzelin12@stud.fit.vutbr.cz
 
 
 import pygtk
@@ -13,7 +18,6 @@ import signal
 
 
 from SyscallExtractor import *
-#from InputScanner import *
 from Injector import *
 from InjectController import *
 from GenerateStap import *
@@ -23,32 +27,50 @@ from FaultDialog import *
 
 gtk.gdk.threads_init()
 
-class SenderStart(gobject.GObject):
-    def __init__(self):
-        self.__gobject_init__()
-    
-gobject.type_register(SenderStart)
-gobject.signal_new("start_signal", SenderStart, gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ())
-
 
 class TutorialApp(object):       
-    def __init__(self, sender):
-        self.sender = sender
+    def __init__(self):
         
-        self.sender.connect("start_signal", self.startApp)
+        self.injectBasicFilename = "injectBasic.stp"
+        self.injectAdvancedFilename = "injectAdvanced.stp"
         
         self.injector = None
-
+        self.controller = None
     
         self.builder = gtk.Builder()
         self.builder.add_from_file("fault_injection.glade")
-        self.builder.connect_signals({ "exitApp" : gtk.main_quit, "browseButtonClicked": self.browseClicked, "nofileRadio" : self.nofileRadioClicked, "eacessRadio" : self.eacessRadioClicked, "enoentRadio" : self.enoentRadioClicked, "emfileRadio" : self.emfileRadioClicked, "ewouldblockRadio" : self.ewouldblockRadioClicked, "eexistRadio" : self.eexistRadioClicked, "nonetRadio" : self.nonetRadioClicked, "enetunreachRadio" : self.enetunreachRadioClicked, "etimedoutRadio" : self.etimedoutRadioClicked, "econnrefusedRadio" : self.econnrefusedRadioClicked, "econnresetRadio" : self.econnresetRadioClicked, "emsgsizeRadio" : self.emsgsizeRadioClicked, "eisconnRadio" : self.eisconnRadioClicked, "enotconnRadio" : self.enotconnRadioClicked, "startButtonClicked" : self.startButtonClicked, "startButtonReleased" : self.startButtonReleased, "termButtonClicked" : self.termButtonClicked, "eaccesProcessRadio" : self.eaccesProcessRadioClicked, "enoentProcessRadio" : self.enoentProcessRadioClicked, "enoexecRadio" : self.enoexecRadioClicked, "enomemProcessRadio" : self.enomemProcessRadioClicked, "elibbadRadio" : self.elibbadRadioClicked, "etxtbsyRadio" : self.etxtbsyRadioClicked, "noprocessRadio" : self.noprocessRadioClicked, "addFaultButton" : self.addFaultButtonClicked, "removeButtonClicked": self.removeButtonClicked, "modeBasicToggled" : self.modeBasicToggled, "modeAdvancedToggled" : self.modeAdvancedToggled, "saveAs" : self.saveAs, "save" : self.save, "open" : self.openFile, "mainDeleteEvent" : self.mainDeleteEvent,      "noMemoryRadio" : self.noMemoryRadioClicked, "memoryEnomemRadio" : self.memoryEnomemRadioClicked, "memoryEaccesRadio" : self.memoryEaccesRadioClicked, "memoryEagainRadio" : self.memoryEagainRadioClicked, "noRwRadio" : self.noRwRadioClicked, "rwEbadfRadio" : self.rwEbadfRadioClicked, "rwEioRadio" : self.rwEioRadioClicked, "rwEfbigRadio" : self.rwEfbigRadioClicked, "rwEnospcRadio" : self.rwEnospcRadioClicked})
+        # signaly z glade souboru
+        self.builder.connect_signals({ "exitApp" : gtk.main_quit, "browseButtonClicked": self.browseClicked,
+                                    "nofileRadio" : self.nofileRadioClicked, "eacessRadio" : self.eacessRadioClicked,
+                                    "enoentRadio" : self.enoentRadioClicked, "emfileRadio" : self.emfileRadioClicked,
+                                    "ewouldblockRadio" : self.ewouldblockRadioClicked, "eexistRadio" : self.eexistRadioClicked,
+                                    "nonetRadio" : self.nonetRadioClicked, "enetunreachRadio" : self.enetunreachRadioClicked,
+                                    "etimedoutRadio" : self.etimedoutRadioClicked, "econnrefusedRadio" : self.econnrefusedRadioClicked,
+                                    "econnresetRadio" : self.econnresetRadioClicked, "emsgsizeRadio" : self.emsgsizeRadioClicked,
+                                    "eisconnRadio" : self.eisconnRadioClicked, "enotconnRadio" : self.enotconnRadioClicked,
+                                    "startButtonClicked" : self.startButtonClicked, "termButtonClicked" : self.termButtonClicked,
+                                    "eaccesProcessRadio" : self.eaccesProcessRadioClicked, "enoentProcessRadio" : self.enoentProcessRadioClicked,
+                                    "enoexecRadio" : self.enoexecRadioClicked, "enomemProcessRadio" : self.enomemProcessRadioClicked,
+                                    "elibbadRadio" : self.elibbadRadioClicked, "etxtbsyRadio" : self.etxtbsyRadioClicked,
+                                    "noprocessRadio" : self.noprocessRadioClicked, "addFaultButton" : self.addFaultButtonClicked,
+                                    "removeButtonClicked": self.removeButtonClicked, "modeBasicToggled" : self.modeBasicToggled,
+                                    "modeAdvancedToggled" : self.modeAdvancedToggled, "saveAs" : self.saveAs, "save" : self.save,
+                                    "open" : self.openFile, "mainDeleteEvent" : self.mainDeleteEvent, "noMemoryRadio" : self.noMemoryRadioClicked,
+                                    "memoryEnomemRadio" : self.memoryEnomemRadioClicked, "memoryEaccesRadio" : self.memoryEaccesRadioClicked,
+                                    "memoryEagainRadio" : self.memoryEagainRadioClicked, "noRwRadio" : self.noRwRadioClicked,
+                                    "rwEbadfRadio" : self.rwEbadfRadioClicked, "rwEioRadio" : self.rwEioRadioClicked,
+                                    "rwEfbigRadio" : self.rwEfbigRadioClicked, "rwEnospcRadio" : self.rwEnospcRadioClicked,
+                                    "fileENOTDIRRadio" : self.fileENOTDIRRadioClicked, "fileEBUSYRadio" : self.fileEBUSYRadioClicked,
+                                    "fileENOTEMPTYRadio" : self.fileENOTEMPTYRadioClicked, "fileEMLINKRadio" : self.fileEMLINKRadioClicked,
+                                    "runAbout" : self.runAbout, "textViewAllocate" : self.scrollDown})
+                                    
         button = self.builder.get_object("termButton")
         button.set_sensitive(False)
         self.window = self.builder.get_object("mainWindow")
         self.window.show()
         
-        # List of faults
+        
+        # Tabulka pro chyby v pokrocilem rezimu
         self.faultView = self.builder.get_object("faultView")
         self.faultList = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_BOOLEAN)
         self.faultView.set_model(self.faultList)
@@ -89,6 +111,8 @@ class TutorialApp(object):
         extractor = SyscallExtractor()
         self.syscallsAndErrors = extractor.extract("syscalls")
         
+        # asociativni pole pro povolene chyby od zacatku testovani
+        # v zakladnim rezimu
         self.enableFault = {}
         self.enableFault["file"] = "NOFAULT"
         self.enableFault["net"] = "NOFAULT"
@@ -96,6 +120,7 @@ class TutorialApp(object):
         self.enableFault["memory"] = "NOFAULT"
         self.enableFault["rw"] = "NOFAULT"
         
+        # datove typy pro chyby v pokrocilem rezimu
         self.faults = {}
         self.existedFaults = []
         self.faultsStartValue = {}
@@ -108,12 +133,15 @@ class TutorialApp(object):
         self.openItem.set_sensitive(False)
         self.fileName = None
         
+        # log pro aktualni chyby
         self.logText = ""
         self.textBuffer = self.builder.get_object("textBuffer")
         self.logView = self.builder.get_object("textViewLog")
-        #self.logView.set_buffer(self.textBuffer)
         
+        # jmeno systemtapoveho modulu v procfs
         self.moduleName = ""
+        
+        # jmeno aplikace a jeji argumenty
         self.appEntry = self.builder.get_object("appEntry")
         self.paramEntry = self.builder.get_object("paramEntry")
         
@@ -122,210 +150,109 @@ class TutorialApp(object):
         frame = self.builder.get_object("frame2")
         frame.set_visible(False)
         
+        
+        # vkladane chyby do zakladniho modu
+        self.basicError = {}
+        self.basicError["file"] = { "open" : ["EACCES", "ENOENT", "EMFILE", "EEXIST"],
+                                    "creat" : ["EACCES", "ENOENT", "EMFILE", "EEXIST"],
+                                    "mkdir" : ["EACCES", "ENOENT", "ENOTDIR", "EEXIST"],
+                                    "mkdirat" : ["EACCES", "ENOENT", "ENOTDIR", "EEXIST"],
+                                    "chmod" : ["EACCES", "ENOENT", "ENOTDIR"],
+                                    "chmodat" : ["EACCES", "ENOENT", "ENOTDIR"],
+                                    "chown" : ["EACCES", "ENOENT", "ENOTDIR"],
+                                    "fchown" : ["EACCES", "ENOENT", "ENOTDIR"],
+                                    "lchown" : ["EACCES", "ENOENT", "ENOTDIR"],
+                                    "rmdir" : ["EACCES", "ENOENT", "ENOTDIR", "EBUSY", "ENOTEMPTY"],
+                                    "link" : ["EACCES", "ENOENT", "ENOTDIR", "EEXIST", "EMLINK"],
+                                    "linkat" : ["EACCES", "ENOENT", "ENOTDIR", "EEXIST", "EMLINK"]}
+        self.basicError["net"] = {  "connect" : ["ENETUNREACH", "ETIMEDOUT", "ECONNREFUSED", "EISCONN"],
+                                    "send" : ["ECONNRESET", "EMSGSIZE", "EISCONN", "ENOTCONN"],
+                                    "sendto" : ["ECONNRESET", "EMSGSIZE", "EISCONN", "ENOTCONN"],
+                                    "sendmsg" : ["ECONNRESET", "EMSGSIZE", "EISCONN", "ENOTCONN"],
+                                    "recv" : ["ECONNREFUSED", "ENOTCONN"],
+                                    "recvfrom" : ["ECONNREFUSED", "ENOTCONN"],
+                                    "recvmsg" : ["ECONNREFUSED", "ENOTCONN"]}
+        self.basicError["process"] = {"execve" : ["EACCES", "ENOENT", "ENOEXEC", "ENOMEM", "ELIBBAD", "ETXTBSY"],
+                                      "fork" : ["ENOMEM"]}
+        self.basicError["memory"] = {"mmap2" : ["ENOMEM", "EACCES", "EAGAIN"],
+                                     "munmap" : ["ENOMEM", "EACCES", "EAGAIN"],
+                                     "mremap" : ["EAGAIN"],
+                                     "mprotect" : ["EACCES", "EAGAIN"],
+                                     "brk" : ["EAGAIN"]}
+        self.basicError["rw"] = {"write" : ["EBADF", "EIO", "EFBIG", "ENOSPC"],
+                                 "read" : ["EBADF", "EIO"]}
+        
+        # chybejici volani v zakladnim rezim
         self.missingSyscall = []
+        
+        # zkontroluje, ktere volani v zakldnim rezimu nelze pouzit
         self.checkError()
         
+        # stav aplikace
         self.progress = self.builder.get_object("progressbar")
         self.imageYes =self.builder.get_object("imageYes")
         self.imageYes.set_visible(False)
         self.imageNo =self.builder.get_object("imageNo")
         self.labelStatus = self.builder.get_object("labelStatus")
         
-    
+        
+        
+    # zkontroluje, ktera volani a ktere chyby nejsou dostupne
+    # v zakladnim rezimu
+    # ty, ktere chybi nelze vybrat
     def checkError(self):
         syscalls = self.syscallsAndErrors[0].keys()
-        if "open" not in syscalls:
-            vbox = self.builder.get_object("vboxFile")
-            vbox.set_sensitive(False)
-            self.missingSyscall.append("open")
-        else:
-            openSyscall = self.syscallsAndErrors[0]["open"]
-            if "EACCES" not in openSyscall:
-                errorRadio = self.builder.get_object("fileEACCESRadio")
-                errorRadio.set_sensitive(False)
-            if "ENOENT" not in openSyscall:
-                errorRadio = self.builder.get_object("fileENOENTRadio")
-                errorRadio.set_sensitive(False)
-            if "EMFILE" not in openSyscall:
-                errorRadio = self.builder.get_object("fileEMFILERadio")
-                errorRadio.set_sensitive(False)
-            if "EEXIST" not in openSyscall:
-                errorRadio = self.builder.get_object("fileEEXISTRadio")
-                errorRadio.set_sensitive(False)
+        
+        for key in self.basicError.keys():
+            checkSyscalls = []
+            existSyscalls = {}
+            errors = set()
+            for s in self.basicError[key].keys():
+                checkSyscalls.append(s)
+                for e in self.basicError[key][s]:
+                    errors.add(e)
+        
+            exists = False
+            for s in checkSyscalls:
+                if s in syscalls:
+                    exists = True
+                    existSyscalls[s] = self.syscallsAndErrors[0][s]
+                else:
+                    self.missingSyscall.append(s)
+            if not exists:
+                try:
+                    vbox = self.builder.get_object("vbox" + key)
+                    vbox.set_sensitive(False)
+                    continue
+                except:
+                    pass
                 
-        if "execve" not in syscalls and "fork" not in syscalls:
-            vbox = self.builder.get_object("vboxProcess")
-            vbox.set_sensitive(False)
-            self.missingSyscall.append("open")
-        else:
-            try:
-                execveSyscall = self.syscallsAndErrors[0]["execve"]
-            except KeyError:
-                execveSyscall = []
-                self.missingSyscall.append("execve")
-            try:
-                forkSyscall = self.syscallsAndErrors[0]["fork"]
-            except KeyError:
-                forkSyscall = []
-                self.missingSyscall.append("fork")
-            if "EACCES" not in execveSyscall:
-                errorRadio = self.builder.get_object("processEACCESRadio")
-                errorRadio.set_sensitive(False)
-            if "ENOENT" not in execveSyscall:
-                errorRadio = self.builder.get_object("processENOENTRadio")
-                errorRadio.set_sensitive(False)
-            if "ENOEXEC" not in execveSyscall:
-                errorRadio = self.builder.get_object("processENOEXECRadio")
-                errorRadio.set_sensitive(False)
-            if "ENOMEM" not in execveSyscall and "ENOMEM" not in forkSyscall:
-                errorRadio = self.builder.get_object("processENOMEMRadio")
-                errorRadio.set_sensitive(False)
-            if "ELIBBAD" not in execveSyscall:
-                errorRadio = self.builder.get_object("processELIBBADRadio")
-                errorRadio.set_sensitive(False)
-            if "ETXTBSY" not in execveSyscall:
-                errorRadio = self.builder.get_object("processETXTBSYRadio")
-                errorRadio.set_sensitive(False)
-
-
+            
+            for e in errors:
+                exists = False
+                for s in existSyscalls.keys():
+                    if e in existSyscalls[s]:
+                        exists = True    
+                        break
+                        
+                if not exists:
+                    try:
+                        errorRadio = self.builder.get_object(key + e + "Radio")
+                        errorRadio.set_sensitive(False)
+                    except:
+                        pass
                 
-        if "connect" not in syscalls and "send" not in syscalls and "sendto" not in syscalls and "sendmsg" not in syscalls and "recv" not in syscalls and "recvfrom" not in syscalls and "recvmsg" not in syscalls:
-            vbox = self.builder.get_object("vboxNet")
-            vbox.set_sensitive(False)
-        else:
-            try:
-                connectSyscall = self.syscallsAndErrors[0]["connect"]
-            except KeyError:
-                connectSyscall = []
-                self.missingSyscall.append("connect")
-            try:
-                sendSyscall = self.syscallsAndErrors[0]["send"]
-            except KeyError:
-                sendSyscall = []
-                self.missingSyscall.append("send")
-            try:
-                sendtoSyscall = self.syscallsAndErrors[0]["sendto"]
-            except KeyError:
-                sendtoSyscall = []
-                self.missingSyscall.append("sendto")
-            try:
-                sendmsgSyscall = self.syscallsAndErrors[0]["sendmsg"]
-            except KeyError:
-                sendmsgSyscall = []
-                self.missingSyscall.append("sendmsg")
-            try:
-                recvSyscall = self.syscallsAndErrors[0]["recv"]
-            except KeyError:
-                recvSyscall = []
-                self.missingSyscall.append("recv")
-            try:
-                recvfromSyscall = self.syscallsAndErrors[0]["recvfrom"]
-            except KeyError:
-                recvfromSyscall = []
-                self.missingSyscall.append("recvfrom")
-            try:
-                recvmsgSyscall = self.syscallsAndErrors[0]["recvmsg"]
-            except KeyError:
-                recvmsgSyscall = []
-                self.missingSyscall.append("recvmsg")
-                
-            if "ENETUNREACH" not in connectSyscall:
-                errorRadio = self.builder.get_object("netENETUNREACHRadio")
-                errorRadio.set_sensitive(False)
-            if "ETIMEDOUT" not in connectSyscall:
-                errorRadio = self.builder.get_object("netETIMEDOUTRadio")
-                errorRadio.set_sensitive(False)
-            if "ECONNREFUSED" not in connectSyscall and "ECONNREFUSED" not in recvSyscall and "ECONNREFUSED" not in recvfromSyscall and "ECONNREFUSED" not in recvmsgSyscall:
-                errorRadio = self.builder.get_object("netECONNREFUSEDRadio")
-                errorRadio.set_sensitive(False)
-            if "ECONNRESET" not in sendSyscall and "ECONNRESET" not in sendtoSyscall and "ECONNRESET" not in sendmsgSyscall:
-                errorRadio = self.builder.get_object("netECONNRESETRadio")
-                errorRadio.set_sensitive(False)
-            if "EMSGSIZE" not in sendSyscall and "EMSGSIZE" not in sendtoSyscall and "EMSGSIZE" not in sendmsgSyscall:
-                errorRadio = self.builder.get_object("netEMSGSIZERadio")
-                errorRadio.set_sensitive(False)
-            if "EISCONN" not in connectSyscall and "EISCONN" not in sendSyscall and "EISCONN" not in sendtoSyscall and "EISCONN" not in sendmsgSyscall:
-                errorRadio = self.builder.get_object("netEISCONNRadio")
-                errorRadio.set_sensitive(False)
-            if "ENOTCONN" not in sendSyscall and "ENOTCONN" not in sendtoSyscall and "ENOTCONN" not in sendmsgSyscall and "ENOTCONN" not in recvSyscall and "ENOTCONN" not in recvfromSyscall and "ENOTCONN" not in recvmsgSyscall:
-                errorRadio = self.builder.get_object("netENOTCONNRadio")
-                errorRadio.set_sensitive(False)
-                
-        if "mmap" not in syscalls and "mmap2" not in syscalls and "munmap" not in syscalls and "mremap" not in syscalls and "mprotect" not in syscalls and "brk" not in syscalls:
-            vbox = self.builder.get_object("vboxMemory")
-            vbox.set_sensitive(False)
-        else:
-            try:
-                mmapSyscall = self.syscallsAndErrors[0]["mmap"]
-            except KeyError:
-                mmapSyscall = []
-                self.missingSyscall.append("mmap")
-            try:
-                mmap2Syscall = self.syscallsAndErrors[0]["mmap2"]
-            except KeyError:
-                mmap2Syscall = []
-                self.missingSyscall.append("mmap2")
-            try:
-                munmapSyscall = self.syscallsAndErrors[0]["munmap"]
-            except KeyError:
-                munmapSyscall = []
-                self.missingSyscall.append("munmap")
-            try:
-                mremapSyscall = self.syscallsAndErrors[0]["mremap"]
-            except KeyError:
-                mremapSyscall = []
-                self.missingSyscall.append("mremap")
-            try:
-                mprotectSyscall = self.syscallsAndErrors[0]["mprotect"]
-            except KeyError:
-                mprotectSyscall = []
-                self.missingSyscall.append("mprotect")
-            try:
-                brkSyscall = self.syscallsAndErrors[0]["brk"]
-            except KeyError:
-                brkSyscall = []
-                self.missingSyscall.append("brk")
-                
-            if "EAGAIN" not in mmapSyscall and "EAGAIN" not in munmapSyscall and "EAGAIN" not in mmap2Syscall:
-                errorRadio = self.builder.get_object("memoryEAGAINRadio")
-                errorRadio.set_sensitive(False)
-            if "EACCES" not in mmapSyscall and "EACCES" not in munmapSyscall and "EACCES" not in mmap2Syscall and "EACCES" not in mprotectSyscall:
-                errorRadio = self.builder.get_object("memoryEACCESRadio")
-                errorRadio.set_sensitive(False)
-            if "ENOMEM" not in mmapSyscall and "ENOMEM" not in munmapSyscall and "ENOMEM" not in mmap2Syscall and "ENOMEM" not in mprotectSyscall and "ENOMEM" not in mremapSyscall and "ENOMEM" not in brkSyscall:
-                errorRadio = self.builder.get_object("memoryENOMEMRadio")
-                errorRadio.set_sensitive(False)
-                
-        if "write" not in syscalls and "read" not in syscalls:
-            vbox = self.builder.get_object("vboxRw")
-            vbox.set_sensitive(False)
-        else:
-            try:
-                readSyscall = self.syscallsAndErrors[0]["read"]
-            except KeyError:
-                readSyscall = []
-                self.missingSyscall.append("read")
-            try:
-                writeSyscall = self.syscallsAndErrors[0]["write"]
-            except KeyError:
-                writeSyscall = []
-                self.missingSyscall.append("write")
-                
-            if "EBADF" not in readSyscall and "EBADF" not in writeSyscall:
-                errorRadio = self.builder.get_object("rwEBADFRadio")
-                errorRadio.set_sensitive(False)
-            if "EIO" not in readSyscall and "EIO" not in writeSyscall:
-                errorRadio = self.builder.get_object("rwEIORadio")
-                errorRadio.set_sensitive(False)
-            if "EFBIG" not in writeSyscall:
-                errorRadio = self.builder.get_object("rwEFBIGRadio")
-                errorRadio.set_sensitive(False)
-            if "ENOSPC" not in writeSyscall:
-                errorRadio = self.builder.get_object("rwENOSPCRadio")
-                errorRadio.set_sensitive(False)
-
-
     
+    # zobrazi about dialog
+    def runAbout(self, widget):
+        about = gtk.AboutDialog()
+        about.set_program_name("Fault injection tool")
+        about.set_copyright("(c) Martin Zelinka")
+        about.set_comments("A Fault Injection Bug Hunting Tool Based on Systemtap")
+        about.run()
+        about.destroy()
+
+    # tlacitko Browse pro vybrani testovaneho programu
     def browseClicked(self, widget):
         fileDialog = gtk.FileChooserDialog(title=None, action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                         buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
@@ -335,28 +262,11 @@ class TutorialApp(object):
             inputApp = self.builder.get_object("appEntry")
             inputApp.set_text(fileDialog.get_filename())
         fileDialog.destroy()
-    
-    def startButtonReleased(self, widget):
-        print "start release"
-        time.sleep(3)
-        self.panely.set_sensitive(True)
-    
-    def startApp(self, widget):
-        
-        
-        time.sleep(3)
-        print "panely locked"
-        # vygeneruje soubor pro systemtap
-        #generator = GenerateStap()
-        #generator.generateNormalInjection("inject4.stp", self.syscallsAndErrors[1], self.enableFault)
-        print "generate finished"
-        # vlozi odpovidajici chyby podle zadaneho vstupu
-        #injector = Injector(injectValues, command)
-        #injector.start()
 
-    
+
+    # tlacitko Run, spusti testovani
     def startButtonClicked(self, widget):
-        appName = self.appEntry.get_text()  #osetrit prazdne appName
+        appName = self.appEntry.get_text()
         param = self.paramEntry.get_text()
         
         if appName == "":
@@ -365,47 +275,72 @@ class TutorialApp(object):
             messDlg.destroy()
             return
             
+        if not self.modeBasic:
+            if self.faults == {}:
+                messDlg = gtk.MessageDialog(type=gtk.MESSAGE_WARNING, buttons=gtk.BUTTONS_CLOSE, message_format="No fault is added")
+                messDlg.run()
+                messDlg.destroy()
+                return
+            
+        # nastavi se zobrazovany stav
         self.progress.set_fraction(0.0)
         self.progress.set_visible(True)
         self.labelStatus.set_label("Running")
         self.imageYes.set_visible(True)
         self.imageNo.set_visible(False)
         
-        #self.showProgress()
-        
+        # vyprazdni se Log
         self.logText = ""
         self.textBuffer.set_text(self.logText)
-        self.generateCode()
         
+        # zneplatni se tlacitka a vkladane chyby
         widget.set_sensitive(False)
+        self.addButton = self.builder.get_object("addButton")
+        self.addButton.set_sensitive(False)
+        self.removeButton = self.builder.get_object("removeButton")
+        self.removeButton.set_sensitive(False)
+        self.browseButton = self.builder.get_object("browseButton")
+        self.browseButton.set_sensitive(False)
         self.panely = self.builder.get_object("panely")
         self.panely.set_sensitive(False)
+        self.menu = self.builder.get_object("menubar1")
+        self.menu.set_sensitive(False)
         
         termButton = self.builder.get_object("termButton")
         termButton.set_sensitive(True)
         
         # vygeneruje soubor pro systemtap
         generator = GenerateStap()
+        try:
+            if self.modeBasic:
+                generator.generateNormalInjection(self.injectBasicFilename, self.syscallsAndErrors[1], self.enableFault, self.missingSyscall, self.basicError)
+            else:
+                generator.generate(self.injectAdvancedFilename, self.faults, self.faultsStartValue, self.syscallsAndErrors[1])
+        except IOError:
+            self.endTestApp()
+            self.threadError("Permission denied.\nClose application and run as root")
+            return
+                
+        # vytvoreni injectoru, ktery spousti testovani (Systemtap)
         if self.modeBasic:
-            generator.generateNormalInjection("inject4.stp", self.syscallsAndErrors[1], self.enableFault, self.missingSyscall)
+            self.injector = Injector(appName + " " + param, self.injectBasicFilename, self)
         else:
-            self.generateCode()
-        
-        
-        if self.modeBasic:
-            self.injector = Injector(appName + " " + param, "inject4.stp", self)
-        else:
-            self.injector = Injector(appName + " " + param, "inject5.stp", self)
+            self.injector = Injector(appName + " " + param, self.injectAdvancedFilename, self)
             
+        # vytvoreni kontroleru, zjisti, kdy skonci predklad skriptu
+        # pro Systemtap
         self.controller = InjectController(self)
         
+        # spusti se testovani
         self.injector.start()
         self.controller.start()
         
         
+    # vola se na konci testovani, nastavi stav aplikace apod   
     def endTestApp(self):
         self.moduleName = ""
-        self.controller.stop()
+        if self.controller != None:
+            self.controller.stop()
         termButton = self.builder.get_object("termButton")
         termButton.set_sensitive(False)
         startButton = self.builder.get_object("startButton")
@@ -415,22 +350,37 @@ class TutorialApp(object):
         
         self.labelStatus.set_label("Stopped")
         self.labelStatus.set_visible(True)
-#        self.labelStatus.set_sensitive(True)
         self.imageYes.set_visible(False)
         self.imageNo.set_visible(True)
         
-    def termButtonClicked(self, widget):
-        #self.endTestApp()
-        self.injector.terminate()
-        #try:
-        #    os.kill(0, signal.SIGINT)
-        #except KeyboardInterrupt:
-        #    pass
+        self.addButton = self.builder.get_object("addButton")
+        self.addButton.set_sensitive(True)
+        self.removeButton = self.builder.get_object("removeButton")
+        self.removeButton.set_sensitive(True)
+        self.browseButton = self.builder.get_object("browseButton")
+        self.browseButton.set_sensitive(True)
+        self.menu = self.builder.get_object("menubar1")
+        self.menu.set_sensitive(True)
         
-    def keyboardInterrupt(self):
+    # tlacitko Terminate pro ukonceni testovani
+    def termButtonClicked(self, widget):
         if self.injector != None:
             self.injector.terminate()
         
+    # vola se pri Ctrl + C
+    def keyboardInterrupt(self):
+        if self.injector != None:
+            self.injector.terminate()
+          
+    # vola se z ostatnich vlaken
+    # pokud nastane chyba
+    # msg - chybove hlaseni
+    def threadError(self, msg):
+        errDlg = gtk.MessageDialog(type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE, message_format=msg)
+        errDlg.run()
+        errDlg.destroy()
+        
+    # otevre soubor s preddefinovanymi chybami
     def openFile(self, widget):
         fileDialog = gtk.FileChooserDialog(title=None, action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                         buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
@@ -443,7 +393,10 @@ class TutorialApp(object):
             data = inputFile.read()
             scanner = InputScanner(self.syscallsAndErrors)
             self.faults = scanner.scan(data)
-            print self.faults
+            if self.faults == None:
+                fileDialog.destroy()
+                self.threadError("Bad file format")
+                return
             self.faultList.clear()
             self.existedFaults = []
             self.faultsStartValue = {}
@@ -458,12 +411,9 @@ class TutorialApp(object):
             self.fileName = filename
             self.faultsEdited = False
             self.saveItem.set_sensitive(False)
-            #except:
-            #    errDlg = gtk.MessageDialog(type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE, message_format="Cannot open file")
-            #    res = errDlg.run()
-            #    errDlg.destroy()
         fileDialog.destroy()
     
+    # ulozi soubor s preddefinovanymi chybami
     def save(self, widget):
         if self.fileName == None:
             self.saveAs(widget)
@@ -472,6 +422,7 @@ class TutorialApp(object):
             self.faultsEdited = False
             self.saveItem.set_sensitive(False)
         
+    # ulozi chyby do soubru
     def saveAs(self, widget):
         fileDialog = gtk.FileChooserDialog(title=None, action=gtk.FILE_CHOOSER_ACTION_SAVE,
                                         buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
@@ -495,8 +446,8 @@ class TutorialApp(object):
                 self.saveItem.set_sensitive(False)
         fileDialog.destroy()
         
+    # zapise chyby do souboru
     def saveFaults(self, filename):
-        print filename
         self.fileName = filename
         outputFile = file(filename, 'w')
         for key in self.faults.keys():
@@ -517,11 +468,12 @@ class TutorialApp(object):
                 outputFile.write(key + "(" + argStr + ") = " + f[0] + "\n")
         outputFile.close()
         
+    # prida chybu v pokrocilem rezimu
+    # vytvori se dialog Add fault
     def addFaultButtonClicked(self, widget):
         
         faultDialog = FaultDialog(self.syscallsAndErrors)
         returnValue = faultDialog.run(self.existedFaults)
-        print returnValue
         if returnValue[0] == True:
             self.faultsEdited = True
             self.saveItem.set_sensitive(True)
@@ -542,24 +494,8 @@ class TutorialApp(object):
                 self.faultsStartValue[returnValue[1][0]] = "NOFAULT"
                 self.existedFaults.append([returnValue[1][0], e])
               
-                    
-            #self.faultList.clear()
-            #for f in self.faults:
-                
-    def generateCode(self):
-        print self.faults
         
-        #faultsForGen = {}
-        #errors = []
-        #for f in faults:
-        #    if f[0][0] != beforeSyscall:
-        #        faultsForGen[f[0][0]] = []
-        #        beforeSyscall = f[0][0]
-        #    faultsForGen[f[0][0]].append(f[0][1])
-        generator = GenerateStap()
-        generator.generate("inject5.stp", self.faults, self.faultsStartValue, self.syscallsAndErrors[1])
-        
-                
+    # odstani chybu z tabulky v pokrocilem rezimu  
     def removeButtonClicked(self, widget):
         path = self.faultView.get_cursor()[0]
         if path != None:
@@ -583,9 +519,10 @@ class TutorialApp(object):
                 if self.faultsStartValue[syscall] == error:
                     self.faultsStartValue[syscall] = "NOFAULT"
             except KeyError:
-                pas
-            print "ok"
+                pass
     
+    # vola se pred ukoncenim aplikace
+    # kontrola jestli jsou ulozeny chyby
     def mainDeleteEvent(self, widget, event): 
         if self.injector != None:
             if self.injector.isRunning():
@@ -603,6 +540,7 @@ class TutorialApp(object):
             msgDlg.destroy()
         return False
     
+    # obsluha radioButtonu v tabulce v pokrocilem rezimu
     def faultToggled(self, widget, index, faultList):
         row = faultList.get_iter((int(index),))
         selected = faultList.get_value(row, 8)
@@ -625,6 +563,7 @@ class TutorialApp(object):
             self.procfsWriter(selValue, "NOFAULT")
         faultList.set(row, 8, selected)
         
+    # aplikace se prepne do zakladniho modu
     def modeBasicToggled(self, widget):
         if widget.get_active():
             if self.faultsEdited:
@@ -649,7 +588,7 @@ class TutorialApp(object):
             self.faultList.clear()
             
 
-            
+    # aplikace se prepne do pokrocileho modu (rezimu)    
     def modeAdvancedToggled(self, widget):
         if widget.get_active():
             self.modeBasic = False
@@ -661,38 +600,69 @@ class TutorialApp(object):
             self.saveAsItem.set_sensitive(True)
             self.openItem.set_sensitive(True)
     
+    # prida text do Logu
     def addTextToLog(self, text):
         self.logText += text
         self.textBuffer.set_text(self.logText)
+        
+    # zajisti aby Log byl scrolovany vzdy dole
+    # abychom videli posledni pridany zaznam
+    def scrollDown(self, widget, e):
         scrolled = self.builder.get_object("scrolledwindowLog")
         adj = scrolled.get_vadjustment()
         adj.set_value(adj.get_upper() - adj.get_page_size())
         scrolled.set_vadjustment(adj)
 
-        
+    # povoli, zadaze odpovidajici chybu
+    # zapise do souboru v procfs
     def procfsWriter(self, name, value):
         if self.moduleName != "":
             os.system("echo " + str(value) + " > /proc/systemtap/" + self.moduleName + "/" + name)
        
+       
+    # metody pro radioButtony s chybami
+    # v zakladnim rezimu prace
+       
+    # File management
     def nofileRadioClicked(self, widget):
         if widget.get_active():
-            self.enableFault["file"] = "NOFILE"
-            self.procfsWriter("file", "nofault")
+            self.enableFault["file"] = "NOFAULT"
+            self.procfsWriter("file", "NOFAULT")
 
     def eacessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "EACCES"
-            self.procfsWriter("file", "eacces")
+            self.procfsWriter("file", "EACCES")
 
     def enoentRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "ENOENT"
-            self.procfsWriter("file", "enoent")
+            self.procfsWriter("file", "ENOENT")
     
     def emfileRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "EMFILE"
-            self.procfsWriter("file", "emfile")
+            self.procfsWriter("file", "EMFILE")
+    
+    def fileENOTDIRRadioClicked(self, widget):
+        if widget.get_active():
+            self.enableFault["file"] = "ENOTDIR"
+            self.procfsWriter("file", "ENOTDIR")
+    
+    def fileEBUSYRadioClicked(self, widget):
+        if widget.get_active():
+            self.enableFault["file"] = "EBUSY"
+            self.procfsWriter("file", "EBUSY")
+    
+    def fileENOTEMPTYRadioClicked(self, widget):
+        if widget.get_active():
+            self.enableFault["file"] = "ENOTEMPTY"
+            self.procfsWriter("file", "ENOTEMPTY")
+    
+    def fileEMLINKRadioClicked(self, widget):
+        if widget.get_active():
+            self.enableFault["file"] = "EMLINK"
+            self.procfsWriter("file", "EMLINK")
     
     def ewouldblockRadioClicked(self, widget):
         if widget.get_active():
@@ -703,135 +673,136 @@ class TutorialApp(object):
     def eexistRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["file"] = "EEXIST"
-            self.procfsWriter("file", "eexist")
+            self.procfsWriter("file", "EEXIST")
     
+    # Network
     def nonetRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "NOFAULT"
-            self.procfsWriter("net", "nofault")
+            self.procfsWriter("net", "NOFAULT")
 
     def enetunreachRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ENETUNREACH"
-            self.procfsWriter("net", "enetunreach")
+            self.procfsWriter("net", "ENETUNREACH")
     
     def etimedoutRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ETIMEDOUT"
-            self.procfsWriter("net", "etimedout")
+            self.procfsWriter("net", "ETIMEDOUT")
     
     def econnrefusedRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ECONNREFUSED"
-            self.procfsWriter("net", "econnrefused")
+            self.procfsWriter("net", "ECONNREFUSED")
     
     def econnresetRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ECONNRESET"
-            self.procfsWriter("net", "econnreset")
+            self.procfsWriter("net", "ECONNRESET")
     
     def emsgsizeRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "EMSGSIZE"
-            self.procfsWriter("net", "emsgsize")
+            self.procfsWriter("net", "EMSGSIZE")
     
     def eisconnRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "EISCONN"
-            self.procfsWriter("net", "eisconn")
+            self.procfsWriter("net", "EISCONN")
     
     def enotconnRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["net"] = "ENOTCONN"
-            self.procfsWriter("net", "enotconn")
+            self.procfsWriter("net", "ENOTCONN")
 
-    
+    # Process
     def noprocessRadioClicked(self, widget):
         if widget.get_active():
-            self.enableFault["process"] = "NOPROCESS"
-            self.procfsWriter("process", "nofault")
+            self.enableFault["process"] = "NOFAULT"
+            self.procfsWriter("process", "NOFAULT")
 
     def eaccesProcessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "EACCES"
-            self.procfsWriter("process", "eacces_process")
+            self.procfsWriter("process", "EACCES")
 
     def enoentProcessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ENOENT"
-            self.procfsWriter("process", "enoent_process")
+            self.procfsWriter("process", "ENOENT")
 
     def enoexecRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ENOEXEC"
-            self.procfsWriter("process", "enoexec")
+            self.procfsWriter("process", "ENOEXEC")
 
     def enomemProcessRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ENOMEM"
-            self.procfsWriter("process", "enomem_process")
+            self.procfsWriter("process", "ENOMEM")
 
     def elibbadRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ELIBBAD"
-            self.procfsWriter("process", "elibbad")
+            self.procfsWriter("process", "ELIBBAD")
 
     def etxtbsyRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["process"] = "ETXTBSY"
-            self.procfsWriter("process", "etxtbsy")
+            self.procfsWriter("process", "ETXTBSY")
             
     # Memory
     def noMemoryRadioClicked(self, widget):
         if widget.get_active():
-            self.enableFault["memory"] = "NOMEMORY"
-            self.procfsWriter("memory", "nofault")
+            self.enableFault["memory"] = "NOFAULT"
+            self.procfsWriter("memory", "NOFAULT")
             
     def memoryEnomemRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["memory"] = "ENOMEM"
-            self.procfsWriter("memory", "enomem")
+            self.procfsWriter("memory", "ENOMEM")
             
     def memoryEaccesRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["memory"] = "EACCES"
-            self.procfsWriter("memory", "eacces")
+            self.procfsWriter("memory", "EACCES")
             
     def memoryEagainRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["memory"] = "EAGAIN"
-            self.procfsWriter("memory", "egain")
+            self.procfsWriter("memory", "EGAIN")
             
     # rw
     def noRwRadioClicked(self, widget):
         if widget.get_active():
-            self.enableFault["rw"] = "NORW"
-            self.procfsWriter("rw", "nofault")
+            self.enableFault["rw"] = "NOFAULT"
+            self.procfsWriter("rw", "NOFAULT")
         
     def rwEbadfRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["rw"] = "EBADF"
-            self.procfsWriter("rw", "ebadf")
+            self.procfsWriter("rw", "EBADF")
         
     def rwEioRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["rw"] = "EIO"
-            self.procfsWriter("rw", "eio")
+            self.procfsWriter("rw", "EIO")
         
     def rwEfbigRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["rw"] = "EFBIG"
-            self.procfsWriter("rw", "efbig")
+            self.procfsWriter("rw", "EFBIG")
         
     def rwEnospcRadioClicked(self, widget):
         if widget.get_active():
             self.enableFault["rw"] = "ENOSPC"
-            self.procfsWriter("rw", "enospc")
+            self.procfsWriter("rw", "ENOSPC")
         
             
 if __name__ == "__main__":
-    sender = SenderStart()
-    app = TutorialApp(sender)
+    #sender = SenderStart()
+    app = TutorialApp()
     try:
         gtk.main()
     except KeyboardInterrupt:

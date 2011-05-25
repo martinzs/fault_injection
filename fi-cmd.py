@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Soubor: fi-cmd.py
+# Popis:  Hlavni funkce konzolove aplikace
+# Autor:  Martin Zelinka, xzelin12@stud.fit.vutbr.cz
+
+
 import sys
 import getopt
 from SyscallExtractor import *
@@ -9,13 +14,15 @@ from Injector import *
 from GenerateStap import *
 from InputController import *
 
+# hlavni funkce konzolove aplikace
 def main():
     # kontrola argumentu programu
     inputFilename = ""
     command = ""
-    disableSyscalls = 0
+    injectFile = "inject-cmd.fi"
+
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "i:c:d", ["input=", "command="])
+        opts, args = getopt.getopt(sys.argv[1:], "i:c:", ["input=", "command="])
     except getopt.GetoptError, e:
         print e
         return
@@ -24,8 +31,6 @@ def main():
             inputFilename = a
         elif o in ("-c", "--command"):
             command = a
-        elif o in ("-d",):
-            disableSyscalls = 1
 
     if inputFilename == "":
         print "no input file"
@@ -40,33 +45,38 @@ def main():
     try:
         inputFile = file(inputFilename, 'r')
     except IOError:
-        print "Soubor neexistuje"
+        print "File does not exist."
         return
     inputData = inputFile.read()
     inputFile.close()
 
     # extrakce systemovych volani a jejich navratovych hodnot
     extractor = SyscallExtractor()
-    syscallsAndErrors = extractor.extract("syscalls")
+    try:
+        syscallsAndErrors = extractor.extract("syscalls")
+    except:
+        print "Error during syscalls search"
+        return
         
-    # lexikalni analyza vstupniho soboru s pravidly
+    # lexikalni a syntakticka analyza vstupniho soboru s pravidly
     scanner = InputScanner(syscallsAndErrors)
     injectValues = scanner.scan(inputData)
-    #print injectValues
-    #return
+    if injectValues == None:
+        print "Bad format of input file"
+        return
 
     # vygeneruje soubor pro systemtap
     generator = GenerateStap()
-    generator.generateCmdLine("inject3.stp", injectValues, syscallsAndErrors[1])
+    generator.generateCmdLine(injectFile, injectValues, syscallsAndErrors[1])
 
     # vlozi odpovidajici chyby podle zadaneho vstupu
-    injector = Injector(command, "inject3.stp")
-    injector.start()
+    injector = Injector(command, injectFile)
+    try:
+        injector.start()
+    except:
+        print "Error during injection"
 
-    # vytvoreni vlakna, ktere bude nacitat data ze vstupu
-    if disableSyscalls == 1:
-        injectCtrl = InjectController()
-        injectCtrl.start()
+
 
     
     

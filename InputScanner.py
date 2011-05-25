@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Soubor: InputScanner.py
+# Popis:  Nacita ulozene chyby (pravidla pro vkladani) ze souboru
+# Autor:  Martin Zelinka, xzelin12@stud.fit.vutbr.cz
+
 
 import re
 
@@ -22,6 +28,9 @@ DIGIT = 12
 # Trida pro scanovani vstupniho souboru
 # se zadanymi pravidly pro vkladani chyby
 class InputScanner():
+
+    # syscallsAndErrors - seznam vsech systemovych volani a
+    # jejich navratovych hodnot
     def __init__(self, syscallsAndErrors):
         self.syscallsAndErrors = syscallsAndErrors
         self.syscalls = []
@@ -48,6 +57,8 @@ class InputScanner():
             ])
         
     # identifikator (systemove volani nebo parametr syst. volani)
+    # scanner - lexikalni analyzator, viz vyse
+    # token - nalezeny retezec (token) podle reg. vyrazu
     def ident(self, scanner, token):
         if token in self.syscalls:
             return (token, SYSCALL)
@@ -107,8 +118,9 @@ class InputScanner():
     def other(self, scanner, token):
         return (token, ERROR)
 
-    # lexikalni analyza
+    # syntakticka analyza
     # overi spravnost tokenu
+    # tokens - seznam tokenu
     def lex_anal(self, tokens):
         state = START
         for token in tokens[0]:
@@ -221,13 +233,23 @@ class InputScanner():
                     
         return 1
         
+    # odstrani pocatecni a koncove uvozovky
+    def removeQuote(self, param):
+        if param[0] == "\"":
+            param = param[1:-1]
+        elif param[-1] == "\"":
+            param = param[0:-2]
+        return param
+        
     # rozdeli vstupni soubor na tokeny
+    # data - obsah vstupniho souboru
     def scan(self, data):
         tokens = self.scanner.scan(data)
-        #print tokens
+        if tokens[0] == []:
+            return {}
+
         if not self.lex_anal(tokens):
-            print "Syntax ERROR"
-            #return
+            return None
             
         injectValues = {}
         params = []
@@ -235,11 +257,9 @@ class InputScanner():
         notEmptyParam = False
         syscall = ""
         ecode = ""
-        #enable_d = 0
         for t in tokens[0]:
             if t[1] == SYSCALL:
                 if syscall != "":
-                    #params[1] = ecode
                     if not notEmptyParam:
                         params = []
                     else:
@@ -249,39 +269,20 @@ class InputScanner():
                     params = []
                     ecode = ""
                     notEmptyParam = False
-                #enable_d = 0
                 syscall = t[0]
                 if syscall not in injectValues.keys():
                     injectValues[syscall] = []
-                #params.append(t[0])
-                #params.append(0)
                 
             elif t[1] == PARAM:
-                params.append(t[0])
+                params.append(self.removeQuote(t[0]))
                 paramCount += 1
                 notEmptyParam = True
-            #elif t[1] == R_BRACKET:
-            #    enable_d = 1
-            #elif t[1] == DIGIT:
-            #    if enable_d == 1:
-            #        params[2] = t[0]
-            #    else:
-            #        params.append(t[0])
             elif t[1] == MINUS:
                 params.append("")
                 paramCount += 1
-            #elif t[1] == ALL:
-            #    for e in self.syscallsAndErrors[0][params[0]]:
-            #        ecode.append(self.syscallsAndErrors[0][params[0]][e])
             elif t[1] == ECODE:
-                #try:
-                #ecode.append(self.syscallsAndErrors[0][params[0]][t[0]])
                 ecode = t[0]
-                #except:
-                #    pass
-                #else:
         
-        #params[1] = ecode
         if not notEmptyParam:
             params = []
         else:
@@ -291,18 +292,6 @@ class InputScanner():
                 
         #injectValues.sort()
         return injectValues
-        """
-        injectValuesStr = ""
-        for i in injectValues:
-            for p in i:
-                if len(p) > 1 and p[0] == '\"' and p[-1] == '\"':
-                    param = "'" + p[1:-1] + "'"
-                else:
-                    param = p
-                injectValuesStr += param + ","
-            injectValuesStr += ";"
-        return injectValuesStr
-        """
 
 
 def main():

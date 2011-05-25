@@ -5,7 +5,7 @@
   <object class="GtkListStore" id="liststore1"/>
   <object class="GtkListStore" id="liststore2"/>
   <object class="GtkWindow" id="mainWindow">
-    <property name="title" translatable="yes">FaultInjection</property>
+    <property name="title" translatable="yes">Fault injection tool</property>
     <property name="window_position">center</property>
     <signal name="destroy" handler="exitApp"/>
     <signal name="delete_event" handler="mainDeleteEvent"/>
@@ -112,6 +112,7 @@
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">_About</property>
                         <property name="use_underline">True</property>
+                        <signal name="activate" handler="runAbout"/>
                       </object>
                     </child>
                   </object>
@@ -182,7 +183,7 @@
               <object class="GtkEntry" id="appEntry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="max_length">50</property>
+                <property name="max_length">100</property>
                 <property name="invisible_char">•</property>
               </object>
               <packing>
@@ -318,7 +319,7 @@
                             <property name="visible">True</property>
                             <property name="spacing">10</property>
                             <child>
-                              <object class="GtkVBox" id="vboxFile">
+                              <object class="GtkVBox" id="vboxfile">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="fileLabel">
@@ -413,7 +414,52 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
+                                    <property name="position">6</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="fileEBUSYRadio">
+                                    <property name="label" translatable="yes">File/dir is in use</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">noFileFaultRadio</property>
+                                    <signal name="toggled" handler="fileEBUSYRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
                                     <property name="position">7</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="fileENOTEMPTYRadio">
+                                    <property name="label" translatable="yes">Directory not empty</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">noFileFaultRadio</property>
+                                    <signal name="toggled" handler="fileENOTEMPTYRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">8</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioButton" id="fileEMLINKRadio">
+                                    <property name="label" translatable="yes">Too many links</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="draw_indicator">True</property>
+                                    <property name="group">noFileFaultRadio</property>
+                                    <signal name="toggled" handler="fileEMLINKRadio"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">9</property>
                                   </packing>
                                 </child>
                               </object>
@@ -431,7 +477,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkVBox" id="vboxNet">
+                              <object class="GtkVBox" id="vboxnet">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="netLabel">
@@ -588,7 +634,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkVBox" id="vboxProcess">
+                              <object class="GtkVBox" id="vboxprocess">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="processLabel">
@@ -730,7 +776,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkVBox" id="vboxMemory">
+                              <object class="GtkVBox" id="vboxmemory">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="memLabel">
@@ -829,7 +875,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkVBox" id="vboxRw">
+                              <object class="GtkVBox" id="vboxrw">
                                 <property name="visible">True</property>
                                 <child>
                                   <object class="GtkLabel" id="rwLabel">
@@ -1079,6 +1125,7 @@
                         <property name="editable">False</property>
                         <property name="cursor_visible">False</property>
                         <property name="buffer">textBuffer</property>
+                        <signal name="size_allocate" handler="textViewAllocate"/>
                       </object>
                     </child>
                   </object>
@@ -1106,63 +1153,6 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <property name="page_size">10</property>
-  </object>
-  <object class="GtkDialog" id="progressDialog">
-    <property name="border_width">5</property>
-    <property name="title" translatable="yes">Compiling</property>
-    <property name="resizable">False</property>
-    <property name="modal">True</property>
-    <property name="window_position">center-on-parent</property>
-    <property name="destroy_with_parent">True</property>
-    <property name="type_hint">normal</property>
-    <property name="deletable">False</property>
-    <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox1">
-        <property name="visible">True</property>
-        <property name="spacing">2</property>
-        <child>
-          <object class="GtkProgressBar" id="progressbar1">
-            <property name="visible">True</property>
-            <property name="activity_mode">True</property>
-            <property name="text" translatable="yes">Compiling</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area1">
-            <property name="visible">True</property>
-            <property name="layout_style">end</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <object class="GtkButton" id="cancelButton">
-                <property name="label" translatable="yes">Cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-    <action-widgets>
-      <action-widget response="0">cancelButton</action-widget>
-    </action-widgets>
   </object>
   <object class="GtkAction" id="action1"/>
 </interface>

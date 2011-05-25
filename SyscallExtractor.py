@@ -1,14 +1,28 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Soubor: SyscallExtractor.py
+# Popis:  Extrahuje existujici systemova volani, existujici
+#         navratove hodnoty a vzajemne je priradi podle
+#         manualovych stranek
+# Autor:  Martin Zelinka, xzelin12@stud.fit.vutbr.cz
+
 
 import re
 import subprocess
 import gzip
 
 
+# Trida extrahuje existujici systemova volani
+# z hlavickovych souboru, dale extrahuje navratove
+# hodnoty systemovych volani a priradi tyto hodnoty
+# k jednotlivym volanim podle manualovych stranek
 class SyscallExtractor():
 
     def __init__(self):
-        pass
+        self.syscallHeaderFile = "/usr/include/bits/syscall.h"
+        self.returnCodeFile1 = "/usr/include/asm-generic/errno.h"
+        self.returnCodeFile2 = "/usr/include/asm-generic/errno-base.h"
         
     # Najde systemova volani
     # filename - jmeno hlavickoveho souboru
@@ -23,7 +37,7 @@ class SyscallExtractor():
 
 
     # najde navratove hodnoty systemovych volani
-    # filename1, filename1 hlavickove soubory
+    # filename1, filename2 hlavickove soubory
     # vraci asociativni seznam, kde klicem je nazev navratove hodnoty
     def findReturnCode(self, filename1, filename2):
         f = file(filename1, 'r')
@@ -89,6 +103,8 @@ class SyscallExtractor():
         else:
             return []
 
+    # samotne extrahovani
+    # postupne vola predchozi metody
     def extract(self, filename):
         syscallsAndErrors = {}
         returnCode = {}
@@ -98,9 +114,9 @@ class SyscallExtractor():
             syscallFile = file(filename, 'r')
         except IOError:
             syscallFile = file(filename, 'w')
-            syscalls = self.findSyscalls("/usr/include/bits/syscall.h")
+            syscalls = self.findSyscalls(self.syscallHeaderFile)
             syscalls.sort()
-            returnCodeAndMsg = self.findReturnCode("/usr/include/asm-generic/errno.h", "/usr/include/asm-generic/errno-base.h")
+            returnCodeAndMsg = self.findReturnCode(self.returnCodeFile1 , self.returnCodeFile2)
             for k in returnCodeAndMsg.keys():
                 returnCode[k] = returnCodeAndMsg[k][0]
                 message[k] = returnCodeAndMsg[k][1]

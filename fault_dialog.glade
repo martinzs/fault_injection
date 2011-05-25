@@ -18,6 +18,7 @@
   </object>
   <object class="GtkDialog" id="faultDialog">
     <property name="border_width">5</property>
+    <property name="title" translatable="yes">Add fault</property>
     <property name="window_position">center</property>
     <property name="type_hint">dialog</property>
     <signal name="response" handler="faultDialogClose"/>
