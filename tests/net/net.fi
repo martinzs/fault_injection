@@ -1,0 +1,3 @@
+recvfrom(-, D, -, -, -, -) = ENOTCONN
+recvfrom(-, E, -, -, -, -) = ECONNREFUSED
+recvfrom(-, F, -, -, -, -) = ENOMEM

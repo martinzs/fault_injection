@@ -1,0 +1,4 @@
+mkdir(aaa, -, -, -, -, -) = EEXIST
+mkdir(bbb, 0777, -, -, -, -) = EACCES
+chmod(-, 0400, -, -, -, -) = EPERM
+chmod(-, 040, -, -, -, -) = ENOENT

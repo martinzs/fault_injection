@@ -1,0 +1,16 @@
+Sada testovacích programů
+=========================
+Testovací programy k nástroji pro vyvolávání chyb
+založeném na infrastruktuře Systemtap.
+
+Překlad
+=======
+Všechny testovací aplikace se přeloží najednou
+příkazem make v tomto adresáři.
+
+Popis testovacích příkladů
+==========================
+Popis jednotlivých testovacích příkladů a způsob
+jejich použití lze najít v manuálu k programu,
+který se nachází v příloze technické zprávy.
+

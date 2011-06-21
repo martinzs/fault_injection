@@ -12,7 +12,6 @@ from SyscallExtractor import *
 from InputScanner import *
 from Injector import *
 from GenerateStap import *
-from InputController import *
 
 # hlavni funkce konzolove aplikace
 def main():
