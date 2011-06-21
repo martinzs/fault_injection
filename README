@@ -1,0 +1,33 @@
+NÁSTROJ PRO VYVOLÁVÁNÍ CHYB ZALOŽENÝ NA INFRASTRUKTUŘE SYSTEMTAP
+Diplomová práce
+Autor: Martin Zelinka, martinzelinka@centrum.cz
+
+
+Popis
+=====
+Implementace nástroje pro vyvolávání chyb v systémových voláních
+v operačním systému Linux. Aplikace si umí sama zjistit existující
+systémová volání a jejich chybové návratové hodnoty.
+
+
+Požadavky na spuštění
+=====================
+operační systém GNU/Linux
+nástroj Systemtap
+Python verze 2
+knihovna PyGTK (pouze aplikace s GUI)
+manuálové stránky (alespoň sekce 2)
+
+
+Soubory
+=======
+Návod k použití aplikace
+    ./manual.pdf
+    
+Zdrojové soubory v jazyce Python + soubory Glade k implementovanému nástroji
+    ./src/
+    
+Sada jednoduchých testovacích programů v jazyce C
+    ./tests/
+
+
